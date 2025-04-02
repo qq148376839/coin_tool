@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: option_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - option_network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: option_backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - LONGPORT_APP_KEY=${LONGPORT_APP_KEY}
+      - LONGPORT_APP_SECRET=${LONGPORT_APP_SECRET}
+      - LONGPORT_ACCESS_TOKEN=${LONGPORT_ACCESS_TOKEN}
+      - LONGPORT_REGION=${LONGPORT_REGION}
+    ports:
+      - "14086:14086"
+    depends_on:
+      - mysql
+    networks:
+      - option_network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: option_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - option_network
+
+networks:
+  option_network:
+    driver: bridge 
