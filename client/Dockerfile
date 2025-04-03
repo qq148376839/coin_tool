@@ -12,8 +12,8 @@ RUN npm install
 # 复制源代码
 COPY . .
 
-# 修改构建命令，跳过类型检查
-RUN npm run build-only
+# 修改构建命令，添加 --force 标志
+RUN npm run build-only --force
 
 # 运行阶段
 FROM nginx:alpine

@@ -17,7 +17,8 @@
     "element-plus": "^2.6.1",
     "longport": "^2.1.12",
     "unplugin-auto-import": "^0.17.0",
-    "unplugin-vue-components": "^0.26.0"
+    "unplugin-vue-components": "^0.26.0",
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",
