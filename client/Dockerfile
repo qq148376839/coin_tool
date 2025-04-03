@@ -3,17 +3,17 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# 复制 package.json（不强制要求 yarn.lock）
+# 复制 package.json
 COPY package*.json ./
 
-# 安装依赖（使用 npm 而不是 yarn）
+# 安装依赖
 RUN npm install
 
 # 复制源代码
 COPY . .
 
-# 构建应用 - 添加 --force 跳过类型检查
-RUN npm run build -- --force
+# 直接使用 vite 构建，跳过类型检查
+RUN npm run build
 
 # 运行阶段
 FROM nginx:alpine
