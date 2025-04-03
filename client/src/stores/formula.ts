@@ -3,7 +3,11 @@ import { defineStore } from 'pinia'
 interface CustomVariable {
   name: string;
   value: string;
-  type: 'number' | 'formula';
+}
+
+interface TradeVariables {
+  openPrice: string;
+  closePrice: string;
 }
 
 export const useFormulaStore = defineStore('formula', {
@@ -13,7 +17,7 @@ export const useFormulaStore = defineStore('formula', {
     tradeVariables: {
       openPrice: '',
       closePrice: ''
-    }
+    } as TradeVariables
   }),
   
   actions: {

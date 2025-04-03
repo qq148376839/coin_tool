@@ -241,7 +241,13 @@ const pendingList = ref([])
 const amountPercentage = ref(100)
 const maxAmount = ref(0)
 const amountStep = ref(0.00001)
-const symbolMap = ref({})
+
+interface SymbolMap {
+  [key: string]: any;
+}
+
+const symbolMap = ref<SymbolMap>({})
+let timer: NodeJS.Timer | null = null
 
 // 提交订单
 const submitOrder = async () => {
@@ -436,9 +442,9 @@ const handleSliderChange = (percentage: number) => {
 }
 
 // 处理数量输入变化
-const handleAmountChange = (value: number) => {
+const handleAmountChange = (val: number) => {
   if (!maxAmount.value) return
-  const percentage = (value / maxAmount.value) * 100
+  const percentage = (val / maxAmount.value) * 100
   amountPercentage.value = Math.min(Math.max(Math.round(percentage), 1), 100)
 }
 

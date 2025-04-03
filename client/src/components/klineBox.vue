@@ -1,4 +1,3 @@
-
 <template>
   <span @click="getKlineData">获取k线图数据</span>
   <div id="echart_content" ref="echartContent">
@@ -15,7 +14,7 @@ const props = defineProps<{ coin: string }>()
 const echartContent = ref<HTMLDivElement | null>(null);
 
 let myChart: any = null;
-let option: any = null;
+const option = ref<any>(null);
 
 const getKlineData = () => {
   coinApi.getKlineData({
@@ -28,9 +27,11 @@ const getKlineData = () => {
   })
 }
 
-watch(() => props.coin, (newVal) => {
-  getKlineData();
-})
+watch(() => props.coin, (newVal: string) => {
+  if (newVal) {
+    getKlineData();
+  }
+});
 
 
 // 根据k线图计算对应的echatOptions

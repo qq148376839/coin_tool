@@ -159,8 +159,7 @@
                   <span>盈亏比</span>
                 </div>
               </template>
-              <div class="card-value" :class="{'success': backtestResults?.profitRatio > 1, 
-              'danger': backtestResults?.profitRatio < 1 && backtestResults?.profitRatio > 0}">
+              <div class="card-value" :class="getProfitClass(backtestResults?.profitRatio)">
                 {{ (backtestResults?.profitRatio).toFixed(3) || 0}}
               </div>
             </el-card>
@@ -248,19 +247,20 @@ const feeRate = ref(0.1)
 
 const rangeTime = ref([new Date('2024-02-01'), new Date('2024-03-01')])
 
-// 定义回测结果类型
-// interface BacktestResults {
-//   initialCapital: number
-//   profitRatio: number
-//   highestPrice: number
-//   lowestPrice: number
-//   profitCount: number
-//   lossCount: number
-// }
+// 定义类型
+interface BacktestResults {
+  initialCapital: number;
+  profitRatio: number;
+  highestPrice: number;
+  lowestPrice: number;
+  profitCount: number;
+  lossCount: number;
+  value?: any; // 添加可选的value属性
+}
 
 // 回测状态和结果
 const isBacktesting = ref(false)
-const backtestResults = reactive({
+const backtestResults = reactive<BacktestResults>({
   initialCapital: 1000,
   profitRatio: 0,
   highestPrice: 0,
@@ -343,10 +343,13 @@ const startBacktest = () => {
   }
 };
 
-// 获取盈亏比显示样式
-const getProfitClass = (ratio: number) => {
-  return ratio > 0 ? 'success' : ratio < 0 ? 'danger' : ''
-}
+// WebSocket 相关
+let ws: WebSocket | null = null;
+
+// 获取盈亏样式类
+const getProfitClass = (value: number) => {
+  return value >= 0 ? 'profit-positive' : 'profit-negative';
+};
 
 onMounted(() => {
       // 创建 WebSocket 连接
