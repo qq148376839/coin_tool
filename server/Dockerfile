@@ -3,10 +3,16 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# 复制 package.json（不强制要求 yarn.lock）
+# 安装 python3 和构建工具（longport 可能需要）
+RUN apk add --no-cache python3 make g++ gcc
+
+# 复制 package.json
 COPY package*.json ./
 
-# 安装依赖（使用 npm 而不是 yarn）
+# 单独安装 longport
+RUN npm install longport@1.2.0
+
+# 安装其他依赖
 RUN npm install
 
 # 复制源代码
