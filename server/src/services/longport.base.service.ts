@@ -9,11 +9,12 @@ export class LongPortBaseService {
   protected quoteContext: QuoteContext;
 
   constructor() {
-    // 初始化配置
+    // 使用 Config 构造函数初始化配置
     this.config = new Config({
-      appKey: config.longPort.appKey,
-      appSecret: config.longPort.appSecret,
-      accessToken: config.longPort.accessToken
+      appKey: config().longPort.appKey,
+      appSecret: config().longPort.appSecret,
+      accessToken: config().longPort.accessToken,
+      enablePrintQuotePackages: true, // 添加必要的配置项
     });
   }
 
