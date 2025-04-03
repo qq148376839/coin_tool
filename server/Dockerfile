@@ -1,12 +1,9 @@
 # 构建阶段
-FROM node:20-alpine3.18 as builder
+FROM node:18.19.1-alpine3.19 as builder
 
 WORKDIR /app
 
-# 安装 python 和编译工具 (longport SDK 需要)
-RUN apk add --no-cache python3 make g++
-
-# 复制 package.json
+# 复制 package.json 和 package-lock.json (如果存在)
 COPY package*.json ./
 
 # 安装依赖
@@ -19,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # 运行阶段
-FROM node:20-alpine3.18
+FROM node:18.19.1-alpine3.19
 
 WORKDIR /app
 
