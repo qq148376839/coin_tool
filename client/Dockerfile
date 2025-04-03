@@ -1,9 +1,9 @@
 # 构建阶段
-FROM node:18.19.1-alpine3.19 as builder
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json (如果存在)
+# 复制 package.json
 COPY package*.json ./
 
 # 安装依赖
@@ -12,7 +12,7 @@ RUN npm install
 # 复制源代码
 COPY . .
 
-# 修改构建命令
+# 修改构建命令，使用 build-only 而不是 build
 RUN npm run build-only
 
 # 运行阶段
