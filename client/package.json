@@ -18,7 +18,9 @@
     "longport": "^2.1.12",
     "unplugin-auto-import": "^0.17.0",
     "unplugin-vue-components": "^0.26.0",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "echarts": "^5.5.0",
+    "sass": "^1.72.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",
