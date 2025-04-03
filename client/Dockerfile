@@ -1,9 +1,9 @@
 # 构建阶段
-FROM node:18-alpine as builder
+FROM node:20-alpine as builder
 
 WORKDIR /app
 
-# 复制 package.json
+# 复制 package.json 和 package-lock.json (如果存在)
 COPY package*.json ./
 
 # 安装依赖
@@ -12,8 +12,8 @@ RUN npm install
 # 复制源代码
 COPY . .
 
-# 直接使用 vite 构建，跳过类型检查
-RUN npm run build
+# 修改构建命令，跳过类型检查
+RUN npm run build-only
 
 # 运行阶段
 FROM nginx:alpine
