@@ -1,5 +1,5 @@
 # 构建阶段
-FROM node:20-alpine as builder
+FROM node:20-alpine3.18 as builder
 
 WORKDIR /app
 
