@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { io, Socket } from 'socket.io-client';
+import { io as SocketIOClient, Socket } from 'socket.io-client';
 import { LongPortAccountService } from '../src/services/longport.account.service';
 import { LongPortOrderService } from '../src/services/longport.order.service';
 import { LongPortQuoteService } from '../src/services/longport.quote.service';
@@ -24,11 +24,9 @@ describe('LongPort API (e2e)', () => {
       await app.listen(14086);
 
       // 连接WebSocket
-      socket = io('http://localhost:14086/longport', {
+      socket = SocketIOClient('http://localhost:14086/longport', {
         transports: ['websocket'],
-        timeout: 10000,
-        reconnection: true,
-      });
+    });
 
       // 等待连接建立
       await new Promise<void>((resolve, reject) => {
