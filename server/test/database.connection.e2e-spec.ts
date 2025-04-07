@@ -4,26 +4,46 @@ import { ConfigModule } from '@nestjs/config';
 import { OptionContract } from '../src/models/option.contract.model';
 import { OptionOrder } from '../src/models/option.order.model';
 import { OptionPosition } from '../src/models/option.position.model';
-import configOptions from '../src/config/common';
+import * as path from 'path';
 
 describe('Database Connection Test', () => {
   let moduleRef: TestingModule;
 
   beforeAll(async () => {
+    // 显式设置环境变量文件路径
+    const envPath = path.resolve(__dirname, '../.env');
+    
     moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          envFilePath: '.env',
+          envFilePath: envPath,
+          isGlobal: true,
         }),
         SequelizeModule.forRoot({
-          ...configOptions().sequelizeConfig,
+          dialect: 'mysql',
+          host: process.env.DB_HOST || 'localhost',
+          port: parseInt(process.env.DB_PORT, 10) || 3306,
+          username: process.env.DB_USERNAME || 'root',
+          password: process.env.DB_PASSWORD,
+          database: process.env.DB_DATABASE || 'longport_options',
           models: [OptionContract, OptionOrder, OptionPosition],
-          synchronize: true, // 这会自动创建表
-          logging: console.log, // 显示SQL查询
+          synchronize: true,
+          logging: console.log,
         }),
         SequelizeModule.forFeature([OptionContract, OptionOrder, OptionPosition]),
       ],
     }).compile();
+  }, 30000); // 增加超时时间到30秒
+
+  it('should connect to database', async () => {
+    const sequelize = moduleRef.get('SEQUELIZE');
+    try {
+      await sequelize.authenticate();
+      console.log('Database connection has been established successfully.');
+    } catch (error) {
+      console.error('Unable to connect to the database:', error);
+      throw error;
+    }
   });
 
   it('should create tables', async () => {
