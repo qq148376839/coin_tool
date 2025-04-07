@@ -27,18 +27,19 @@ describe('Database Connection Test', () => {
           password: process.env.DB_PASSWORD,
           database: process.env.DB_DATABASE || 'longport_options',
           models: [OptionContract, OptionOrder, OptionPosition],
+          autoLoadModels: true,
           synchronize: true,
-          logging: console.log,
         }),
         SequelizeModule.forFeature([OptionContract, OptionOrder, OptionPosition]),
       ],
     }).compile();
-  }, 30000); // 增加超时时间到30秒
+  }, 30000);
 
   it('should connect to database', async () => {
-    const sequelize = moduleRef.get('SEQUELIZE');
+    const sequelize = moduleRef.get(SequelizeModule);
     try {
-      await sequelize.authenticate();
+      // 使用 OptionContract 模型来测试连接
+      await OptionContract.sequelize.authenticate();
       console.log('Database connection has been established successfully.');
     } catch (error) {
       console.error('Unable to connect to the database:', error);
@@ -48,8 +49,8 @@ describe('Database Connection Test', () => {
 
   it('should create tables', async () => {
     try {
-      const sequelize = moduleRef.get('SEQUELIZE');
-      const tables = await sequelize.showAllSchemas();
+      // 使用 OptionContract 模型来查询表
+      const tables = await OptionContract.sequelize.showAllSchemas();
       console.log('Created tables:', tables);
       expect(tables).toEqual(
         expect.arrayContaining(['OptionContracts', 'OptionOrders', 'OptionPositions'])
