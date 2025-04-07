@@ -55,10 +55,11 @@ export class MarketService {
       '5m': Period.Min_5,
       '15m': Period.Min_15,
       '30m': Period.Min_30,
+      '1h': Period.Hour_1,
+      '4h': Period.Hour_4,
       '1d': Period.Day,
       '1w': Period.Week,
       '1M': Period.Month,
-      '1y': Period.Year
     };
     
     return periodMap[interval] || Period.Min_1;
