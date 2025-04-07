@@ -1,3 +1,7 @@
+// 删除旧的币安API相关代码
+// 导出长桥API
+export * from './longport';
+
 import axios from 'axios';
 const baseUrl = 'http://127.0.0.1:14086';
 

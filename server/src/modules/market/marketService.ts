@@ -1,98 +1,72 @@
 import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { PriceDto, KlineDto } from '../../dto/market.dtc';
-import { USE_CONTRACT_URLBASE } from '../../enums/public';
-import { format } from 'date-fns';
+import { LongPortQuoteService } from '../../services/longport.quote.service';
+import { Period } from 'longport';
+import { KlineDto } from '../../dto/market.dtc';
+import { PriceDto } from '../../dto/market.dtc';
 import { INTERVAL, INTERVAL_TIME, TREND_PARAMS } from '../../enums/market';
 import {
   KlineChangeType,
   OrderPointParams,
   PointOrder,
 } from 'src/interfaces/market.inteface';
+
 @Injectable()
 export class MarketService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly quoteService: LongPortQuoteService) {}
 
-  async getPrice(coin: string): Promise<PriceDto> {
-    // 将coin转换为大写
-    const coinUpper = coin.toUpperCase();
-    const date = new Date().toISOString();
-    // 请求获取货币的价格
-    const res = await this.httpService.axiosRef.get(
-      USE_CONTRACT_URLBASE + `/fapi/v1/ticker/price?symbol=${coinUpper}`,
-    );
-    return {
-      ...res.data,
-      updateTime: date,
-    };
-  }
-
-  /*
-  [
-    1499040000000,      // 开盘时间
-    "0.01634790",       // 开盘价
-    "0.80000000",       // 最高价
-    "0.01575800",       // 最低价
-    "0.01577100",       // 收盘价(当前K线未结束的即为最新价)
-    "148976.11427815",  // 成交量
-    1499644799999,      // 收盘时间
-    "2434.19055334",    // 成交额
-    308,                // 成交笔数
-    "1756.87402397",    // 主动买入成交量
-    "28.46694368",      // 主动买入成交额
-    "17928899.62484339" // 请忽略该参数
-  ]
-  */
-  // 获取货币的k线
-  async getKline(klineDto: KlineDto): Promise<any> {
-    klineDto.symbol = klineDto.symbol.toUpperCase();
-    // 将klineDto转换为url参数
-    const isSimple = klineDto.isSimple;
-    delete klineDto.isSimple;
-    const res = await this.httpService.axiosRef.get(
-      USE_CONTRACT_URLBASE + `/fapi/v1/klines?`,
-      {
-        params: klineDto,
-      },
-    );
-    const data = res.data.map((item: any) => {
-      item[0] = format(item[0], 'MM-dd HH:mm:ss');
-      item[6] = format(item[6], 'MM-dd HH:mm:ss');
-      return item;
-    });
-    if (isSimple) {
-      return this.getSimpleKline(data);
-    }
-    return data;
-  }
-
-  // 获取简单k线图,只获取开盘价,收盘价,最高价,最低价,成交量,成交额,和成交笔数
-  async getSimpleKline(list: any[]): Promise<any> {
-    // 只取最后50条数据
-    const simpleList = list.slice(list.length - 20);
-    const data = simpleList.map((item: any) => {
+  // 获取价格
+  async getPrice(symbol: string): Promise<PriceDto> {
+    try {
+      const quote = await this.quoteService.getQuote([symbol]);
       return {
-        open: item[1],
-        close: item[4],
-        high: item[2],
-        low: item[3],
-        count: item[5],
-        volume: item[7],
-        ticketCount: item[8],
+        symbol: quote[0].symbol,
+        price: quote[0].lastDone,
+        updateTime: new Date().toISOString()
       };
-    });
-    // 取绝对值
-    data.forEach((item: any) => {
-      item.open = Math.abs(item.open);
-      item.close = Math.abs(item.close);
-      item.high = Math.abs(item.high);
-      item.low = Math.abs(item.low);
-      item.count = Math.abs(item.count);
-    });
-    return data;
+    } catch (error) {
+      console.log(error);
+      throw new Error('获取价格失败');
+    }
   }
 
-  // 获取k线图的更多信息
+  // 获取K线数据
+  async getKline(klineDto: KlineDto) {
+    try {
+      const { symbol, interval, limit = 100 } = klineDto;
+      // 将interval转换为Period类型
+      const period = this.convertIntervalToPeriod(interval);
+      
+      const candles = await this.quoteService.getCandles(
+        symbol,
+        period,
+        limit
+      );
+      
+      return candles;
+    } catch (error) {
+      console.log(error);
+      throw new Error('获取K线数据失败');
+    }
+  }
+
+  // 转换时间间隔为Period类型
+  private convertIntervalToPeriod(interval: string): Period {
+    const periodMap: { [key: string]: Period } = {
+      '1m': Period.Min1,
+      '5m': Period.Min5,
+      '15m': Period.Min15,
+      '30m': Period.Min30,
+      '1h': Period.Hour1,
+      '4h': Period.Hour4,
+      '1d': Period.Day,
+      '1w': Period.Week,
+      '1M': Period.Month,
+    };
+    
+    return periodMap[interval] || Period.Min1;
+  }
+
+  // 获取货币的k线
   async getKlineMore(klineDto: KlineDto): Promise<any> {
     const params = {
       symbol: klineDto.symbol,

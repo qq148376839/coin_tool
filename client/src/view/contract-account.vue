@@ -1,5 +1,5 @@
 <template>
-  <div class="contract-account">
+  <div class="contract-account" v-loading="isLoading">
     <div class="header">
       <div class="header-content">
         <el-button class="back-btn" @click="$router.push('/account')" type="text">
@@ -11,61 +11,53 @@
     
     <div class="content">
       <!-- 账户余额信息 -->
-      <el-card class="balance-card">
-        <div class="balance-info">
-          <div class="balance-item">
-            <div class="label">账户总余额</div>
-            <div class="value">{{ accountInfo.totalBalance }} USDT</div>
+      <el-card class="account-info">
+        <template #header>
+          <div class="card-header">
+            <span>账户信息</span>
           </div>
-          <div class="balance-item">
-            <div class="label">可用余额</div>
-            <div class="value">{{ accountInfo.availableBalance }} USDT</div>
+        </template>
+        <div class="info-content">
+          <div class="info-item">
+            <span class="label">账户权益:</span>
+            <span class="value">{{ accountInfo.totalEquity }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">可用余额:</span>
+            <span class="value">{{ accountInfo.availableBalance }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">保证金率:</span>
+            <span class="value">{{ accountInfo.marginRatio }}%</span>
           </div>
         </div>
       </el-card>
 
       <!-- 持仓信息 -->
-      <el-card class="positions-card">
+      <el-card class="positions">
         <template #header>
           <div class="card-header">
-            <span>持仓信息</span>
+            <span>持仓列表</span>
           </div>
         </template>
         
         <el-table :data="positions" style="width: 100%">
-          <el-table-column prop="symbol" label="货币名称" />
-          <el-table-column prop="direction" label="持仓方向">
-            <template #default="scope">
-              <span :class="scope.row.direction === 'LONG' ? 'long' : 'short'">
-                {{ scope.row.direction === 'LONG' ? '多' : '空' }}
+          <el-table-column prop="symbol" label="合约" />
+          <el-table-column prop="direction" label="方向">
+            <template #default="{ row }">
+              <span :class="row.direction === 'LONG' ? 'long' : 'short'">
+                {{ row.direction === 'LONG' ? '多' : '空' }}
               </span>
             </template>
           </el-table-column>
-          <el-table-column prop="amount" label="持仓数量" />
+          <el-table-column prop="quantity" label="数量" />
           <el-table-column prop="currentPrice" label="当前价格" />
           <el-table-column prop="costPrice" label="成本价" />
-          <el-table-column label="收益率">
-            <template #default="scope">
-              <span :class="getPnlClass(scope.row)">
-                {{ calculatePnlRate(scope.row) }}%
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="closePrice" label="平仓价格" />
-          <el-table-column prop="liquidationPrice" label="强平价格">
-            <template #default="scope">
-              <span class="liquidation-price">
-                {{ scope.row.liquidationPrice }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="100">
-            <template #default="scope">
-              <el-button 
-                type="danger" 
-                size="small" 
-                @click="handleClose(scope.row)"
-              >
+          <el-table-column prop="unrealizedPnL" label="未实现盈亏" />
+          <el-table-column prop="marginRatio" label="保证金率" />
+          <el-table-column label="操作">
+            <template #default="{ row }">
+              <el-button type="danger" size="small" @click="handleClose(row)">
                 平仓
               </el-button>
             </template>
@@ -77,101 +69,133 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { accountApi, orderApi, wsApi, quoteApi } from '../api/longport'
 
 interface Position {
   symbol: string
   direction: 'LONG' | 'SHORT'
-  amount: number
+  quantity: number
   currentPrice: number
   costPrice: number
-  closePrice: number
-  liquidationPrice: number
+  unrealizedPnL: number
+  marginRatio: number
 }
 
 interface AccountInfo {
-  totalBalance: number
+  totalEquity: number
   availableBalance: number
+  marginRatio: number
 }
 
 const accountInfo = ref<AccountInfo>({
-  totalBalance: 0,
-  availableBalance: 0
+  totalEquity: 0,
+  availableBalance: 0,
+  marginRatio: 0
 })
 
 const positions = ref<Position[]>([])
+const isLoading = ref(false)
 
 // 获取账户信息
 const getAccountInfo = async () => {
   try {
-    // TODO: 替换为实际API调用
-    accountInfo.value = {
-      totalBalance: 10000.00,
-      availableBalance: 5000.00
-    }
+    isLoading.value = true
+    const [balanceRes, marginRes] = await Promise.all([
+      accountApi.getBalance(),
+      accountApi.getMarginRatio()
+    ])
     
-    positions.value = [
-      {
-        symbol: 'BTCUSDT',
-        direction: 'LONG',
-        amount: 0.5,
-        currentPrice: 45000,
-        costPrice: 44000,
-        closePrice: 44500,
-        liquidationPrice: 40000
-      },
-      {
-        symbol: 'ETHUSDT',
-        direction: 'SHORT',
-        amount: 2,
-        currentPrice: 2800,
-        costPrice: 3000,
-        closePrice: 2900,
-        liquidationPrice: 3200
-      }
-    ]
+    accountInfo.value = {
+      totalEquity: balanceRes.data.totalEquity,
+      availableBalance: balanceRes.data.availableBalance,
+      marginRatio: marginRes.data.marginRatio
+    }
   } catch (error) {
     ElMessage.error('获取账户信息失败')
+  } finally {
+    isLoading.value = false
   }
 }
 
-// 计算收益率
-const calculatePnlRate = (position: Position) => {
-  const pnl = position.direction === 'LONG'
-    ? (position.currentPrice - position.costPrice)
-    : (position.costPrice - position.currentPrice)
-  const rate = (pnl / position.costPrice) * 100
-  return rate.toFixed(2)
+// 获取持仓信息
+const getPositions = async () => {
+  try {
+    const todayOrders = await orderApi.getTodayOrders()
+    // 处理订单数据转换为持仓信息
+    positions.value = todayOrders.data.map((order: any) => ({
+      symbol: order.symbol,
+      direction: order.side === 'BUY' ? 'LONG' : 'SHORT',
+      quantity: order.quantity,
+      currentPrice: order.price,
+      costPrice: order.avgPrice,
+      unrealizedPnL: order.unrealizedPnL,
+      marginRatio: order.marginRatio
+    }))
+  } catch (error) {
+    ElMessage.error('获取持仓信息失败')
+  }
+}
+
+// 订阅行情
+const subscribeQuotes = async () => {
+  try {
+    const socket = wsApi.connect()
+    const symbols = positions.value.map(p => p.symbol)
+    if (symbols.length > 0) {
+      await wsApi.subscribe(symbols, ['QUOTE'])
+      socket.on('quote', (quote) => {
+        // 更新持仓的当前价格
+        const position = positions.value.find(p => p.symbol === quote.symbol)
+        if (position) {
+          position.currentPrice = quote.lastDone
+        }
+      })
+    }
+  } catch (error) {
+    console.error('订阅行情失败:', error)
+  }
 }
 
 // 处理平仓操作
-const handleClose = (position: Position) => {
-  ElMessageBox.confirm(
-    `确认要平掉 ${position.symbol} 的${position.direction === 'LONG' ? '多' : '空'}单吗？`,
-    '平仓确认',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning',
+const handleClose = async (position: Position) => {
+  try {
+    await ElMessageBox.confirm(
+      `确认要平掉 ${position.symbol} 的${position.direction === 'LONG' ? '多' : '空'}单吗？`,
+      '平仓确认',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    
+    await orderApi.submitOrder({
+      symbol: position.symbol,
+      orderType: 'MARKET',
+      side: position.direction === 'LONG' ? 'SELL' : 'BUY',
+      quantity: position.quantity
+    })
+    
+    ElMessage.success('平仓成功')
+    await getPositions()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('平仓失败')
     }
-  ).then(() => {
-    // TODO: 调用平仓 API
-    ElMessage.success('平仓指令已发送')
-  }).catch(() => {
-    // 取消操作
-  })
+  }
 }
 
-// 获取盈亏样式类
-const getPnlClass = (position: Position) => {
-  const pnl = Number(calculatePnlRate(position))
-  return pnl > 0 ? 'profit' : pnl < 0 ? 'loss' : ''
-}
+onMounted(async () => {
+  await getAccountInfo()
+  await getPositions()
+  await subscribeQuotes()
+})
 
-onMounted(() => {
-  getAccountInfo()
+onUnmounted(() => {
+  wsApi.disconnect()
 })
 </script>
 
@@ -210,30 +234,23 @@ onMounted(() => {
   }
 
   .content {
-    .balance-card {
+    .account-info {
       margin-bottom: 20px;
-
-      .balance-info {
-        display: flex;
-        gap: 40px;
-
-        .balance-item {
-          .label {
-            color: #909399;
-            margin-bottom: 8px;
-          }
-          
-          .value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #303133;
-          }
-        }
-      }
     }
-
-    .positions-card {
-      .card-header {
+    
+    .info-content {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    
+    .info-item {
+      .label {
+        color: #666;
+        margin-right: 8px;
+      }
+      
+      .value {
         font-weight: bold;
       }
     }
@@ -247,21 +264,6 @@ onMounted(() => {
 
 .short {
   color: #F56C6C;
-}
-
-// 盈亏样式
-.profit {
-  color: #67C23A;
-}
-
-.loss {
-  color: #F56C6C;
-}
-
-// 添加强平价格样式
-.liquidation-price {
-  color: #E6A23C;
-  font-weight: 500;
 }
 
 // 更新表格样式

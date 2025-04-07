@@ -205,6 +205,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getUserContractNews, getUserOrderList } from '../api/common'
+import { wsApi } from '../api/longport'
 
 // 余额相关
 const availableUsdt = ref(0)
@@ -460,19 +461,30 @@ const getProfitClass = (profit: number) => {
   return 'profit-zero'
 }
 
-onMounted(() => {
-//   refreshData()
-  startBalanceTimer()
-  nextTick(() => {
-    maxAmount.value = calculateMaxAmount()
-    if (maxAmount.value > 0) {
-      handleSliderChange(100) // 默认设置为100%
-    }
-  })
+// 订单状态更新处理
+const handleOrderUpdate = (order: any) => {
+  const index = orderList.value.findIndex(o => o.orderId === order.orderId);
+  if (index !== -1) {
+    orderList.value[index] = order;
+  } else {
+    orderList.value.unshift(order);
+  }
+}
+
+onMounted(async () => {
+  await getTodayOrders();
+  
+  // 连接WebSocket并订阅订单更新
+  const socket = wsApi.connect();
+  await wsApi.subscribeOrders();
+  wsApi.onOrderUpdate(handleOrderUpdate);
 })
 
 onUnmounted(() => {
-  clearBalanceTimer()
+  // 清理订阅
+  wsApi.offOrderUpdate(handleOrderUpdate);
+  wsApi.unsubscribeOrders();
+  wsApi.disconnect();
 })
 </script>
 

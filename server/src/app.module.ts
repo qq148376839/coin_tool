@@ -9,6 +9,13 @@ import { UserModule } from './modules/user/user.module';
 import { AiModule } from './modules/ai/ai.module';
 import { OrderModule } from './modules/order/order.module';
 import { SocketModule } from './modules/socket/socket.module';
+import { LongPortBaseService } from './services/longport.base.service';
+import { LongPortAccountService } from './services/longport.account.service';
+import { LongPortOrderService } from './services/longport.order.service';
+import { LongPortQuoteService } from './services/longport.quote.service';
+import { LongPortAccountController } from './controllers/longport.account.controller';
+import { LongPortQuoteController } from './controllers/longport.quote.controller';
+import { LongPortGateway } from './gateways/longport.gateway';
 
 @Module({
   imports: [
@@ -23,7 +30,16 @@ import { SocketModule } from './modules/socket/socket.module';
     OrderModule,
     SocketModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [
+    LongPortAccountController,
+    LongPortQuoteController,
+  ],
+  providers: [
+    LongPortBaseService,
+    LongPortAccountService,
+    LongPortOrderService,
+    LongPortQuoteService,
+    LongPortGateway,
+  ],
 })
 export class AppModule {}
