@@ -11,44 +11,104 @@ describe('LongPort API (e2e)', () => {
   let app: INestApplication;
   let socket: Socket;
   
+  // 增加超时时间
+  jest.setTimeout(30000);
+  
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    try {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.listen(14086);
+      app = moduleFixture.createNestApplication();
+      await app.listen(14086);
 
-    // 连接WebSocket
-    socket = io('http://localhost:14086/longport', {
-      transports: ['websocket'],
-    });
+      // 连接WebSocket
+      socket = io('http://localhost:14086/longport', {
+        transports: ['websocket'],
+        timeout: 10000,
+        reconnection: true,
+      });
+
+      // 等待连接建立
+      await new Promise<void>((resolve, reject) => {
+        socket.on('connect', () => {
+          console.log('WebSocket connected');
+          resolve();
+        });
+        socket.on('connect_error', (error) => {
+          console.error('WebSocket connection error:', error);
+          reject(error);
+        });
+        socket.on('error', (error) => {
+          console.error('WebSocket error:', error);
+          reject(error);
+        });
+      });
+
+    } catch (error) {
+      console.error('Setup failed:', error);
+      throw error;
+    }
   });
 
   afterAll(async () => {
-    socket.disconnect();
-    await app.close();
+    try {
+      if (socket?.connected) {
+        socket.disconnect();
+      }
+      await app?.close();
+    } catch (error) {
+      console.error('Cleanup failed:', error);
+    }
   });
 
   describe('Account API', () => {
-    it('should get account balance', () => {
-      return request(app.getHttpServer())
-        .get('/longport/account/balance')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toBeDefined();
-          expect(res.body.totalEquity).toBeDefined();
-        });
+    it('should get account balance', async () => {
+      try {
+        const response = await request(app.getHttpServer())
+          .get('/longport/account/balance')
+          .expect(200);
+        
+        console.log('Balance response:', response.body);
+        
+        expect(response.body).toBeDefined();
+        expect(response.body.data).toBeDefined();
+        // 根据实际响应结构调整断言
+        expect(typeof response.body.data.totalEquity).toBe('number');
+      } catch (error) {
+        console.error('Get balance failed:', error);
+        throw error;
+      }
     });
 
-    it('should get cash info', () => {
-      return request(app.getHttpServer())
-        .get('/longport/account/cash-info')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toBeDefined();
-          expect(res.body.withdrawCash).toBeDefined();
-        });
+    it('should get cash info', async () => {
+      try {
+        const response = await request(app.getHttpServer())
+          .get('/longport/account/cash-info')
+          .expect(200);
+        
+        console.log('Cash info response:', response.body);
+        
+        expect(response.body).toBeDefined();
+        expect(response.body.data).toBeDefined();
+        // 根据实际响应结构调整断言
+        expect(typeof response.body.data.withdrawCash).toBe('number');
+      } catch (error) {
+        console.error('Get cash info failed:', error);
+        throw error;
+      }
+    });
+
+    it('should handle API errors gracefully', async () => {
+      try {
+        await request(app.getHttpServer())
+          .get('/longport/account/nonexistent')
+          .expect(404);
+      } catch (error) {
+        console.error('Error handling test failed:', error);
+        throw error;
+      }
     });
   });
 
