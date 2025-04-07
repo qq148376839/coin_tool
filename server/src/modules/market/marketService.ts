@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LongPortQuoteService } from '../../services/longport.quote.service';
 import { Period } from 'longport';
-import { KlineDto } from '../../dto/market.dtc';
-import { PriceDto } from '../../dto/market.dtc';
+import { KlineDto, PriceDto } from '../../dto/market.dtc';
 import { INTERVAL, INTERVAL_TIME, TREND_PARAMS } from '../../enums/market';
 import {
   KlineChangeType,
@@ -20,7 +19,7 @@ export class MarketService {
       const quote = await this.quoteService.getQuote([symbol]);
       return {
         symbol: quote[0].symbol,
-        price: quote[0].lastDone.toString(),
+        price: quote[0].lastDone,
         updateTime: new Date().toISOString()
       };
     } catch (error) {
@@ -51,18 +50,18 @@ export class MarketService {
   // 转换时间间隔为Period类型
   private convertIntervalToPeriod(interval: string): Period {
     const periodMap: { [key: string]: Period } = {
-      '1m': Period.Min_1,
-      '5m': Period.Min_5,
-      '15m': Period.Min_15,
-      '30m': Period.Min_30,
-      '1h': Period.Hour_1,
-      '4h': Period.Hour_4,
+      '1m': Period.Min1,
+      '5m': Period.Min5,
+      '15m': Period.Min15,
+      '30m': Period.Min30,
+      '1h': Period.Hour1,
+      '4h': Period.Hour4,
       '1d': Period.Day,
       '1w': Period.Week,
       '1M': Period.Month,
     };
     
-    return periodMap[interval] || Period.Min_1;
+    return periodMap[interval] || Period.Min1;
   }
 
   // 获取货币的k线

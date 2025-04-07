@@ -2,7 +2,8 @@ import { INTERVAL_LIST } from '../enums/market';
 
 export class PriceDto {
   symbol: string;
-  price: string;  // 使用字符串类型，因为 lastDone 是 Decimal 类型
+  price: number;
+  updateTime?: string; // 添加可选的updateTime字段
 }
 
 // k线获取
