@@ -52,7 +52,7 @@ describe('Database Connection Test', () => {
       const tables = await OptionContract.sequelize.showAllSchemas({ logging: console.log });
       console.log('Created tables:', tables);
       // 提取表名
-      const tableNames = tables.map(table => table.Tables_in_longport);
+      const tableNames = Object.keys(tables);
       expect(tableNames).toEqual(
         expect.arrayContaining(['OptionContracts', 'OptionOrders', 'OptionPositions'])
       );

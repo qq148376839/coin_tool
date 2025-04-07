@@ -21,7 +21,7 @@ describe('LongPort Connection Test', () => {
   it('should connect to trade context', async () => {
     const tradeCtx = await service['initTradeContext']();
     // 获取账户余额来测试连接
-    const account = await tradeCtx.getAccountBalance();
+    const account = await tradeCtx.accountBalance();
     expect(account).toBeDefined();
     console.log('Trade Account Balance:', account);
   });
@@ -29,7 +29,7 @@ describe('LongPort Connection Test', () => {
   it('should connect to quote context', async () => {
     const quoteCtx = await service['initQuoteContext']();
     // 获取某个期权的报价来测试连接
-    const quote = await quoteCtx.getSecurityQuote(['AAPL230908C180000.US']);
+    const quote = await quoteCtx.quote();
     expect(quote).toBeDefined();
     console.log('Quote Data:', quote);
   });
