@@ -29,7 +29,8 @@ describe('LongPort Connection Test', () => {
   it('should connect to quote context', async () => {
     const quoteCtx = await service['initQuoteContext']();
     // 获取某个期权的报价来测试连接
-    const quote = await quoteCtx.quote();
+    const symbols = ['AAPL230908C180000.US'];
+    const quote = await quoteCtx.quote(symbols);
     expect(quote).toBeDefined();
     console.log('Quote Data:', quote);
   });

@@ -49,13 +49,14 @@ describe('Database Connection Test', () => {
 
   it('should create tables', async () => {
     try {
-      const tables = await OptionContract.sequelize.showAllSchemas({ logging: console.log });
-      console.log('Created tables:', tables);
-      // 提取表名
-      const tableNames = Object.keys(tables);
-      expect(tableNames).toEqual(
-        expect.arrayContaining(['OptionContracts', 'OptionOrders', 'OptionPositions'])
-      );
+      const [results] = await OptionContract.sequelize.query('SHOW TABLES');
+      console.log('Created tables:', results);
+      
+      // 从查询结果中提取表名
+      const tableNames = results.map(result => Object.values(result)[0]);
+      expect(tableNames).toContain('OptionContracts');
+      expect(tableNames).toContain('OptionOrders');
+      expect(tableNames).toContain('OptionPositions');
     } catch (error) {
       console.error('Error in create tables test:', error);
       throw error;
