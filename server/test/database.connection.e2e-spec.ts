@@ -50,7 +50,7 @@ describe('Database Connection Test', () => {
   it('should create tables', async () => {
     try {
       // 使用 OptionContract 模型来查询表
-      const tables = await OptionContract.sequelize.showAllSchemas();
+      const tables = await OptionContract.sequelize.showAllSchemas({ logging: console.log });
       console.log('Created tables:', tables);
       expect(tables).toEqual(
         expect.arrayContaining(['OptionContracts', 'OptionOrders', 'OptionPositions'])
