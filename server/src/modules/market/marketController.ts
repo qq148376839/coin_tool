@@ -52,7 +52,16 @@ export class MarketController {
   async getOrder(@Body() klineDto: KlineDto): Promise<any> {
     const list = await this.marketService.getKline(klineDto);
     if (klineDto.isAi) {
-      const recommendPrice = await this.aiService.getRecommendPrice(list);
+      // 将 Candlestick[] 转换为 AI 服务需要的格式
+      const klineData = list.map(candle => ({
+        time: candle.timestamp,
+        open: candle.open,
+        high: candle.high,
+        low: candle.low,
+        close: candle.close,
+        volume: candle.volume
+      }));
+      const recommendPrice = await this.aiService.getRecommendPrice(JSON.stringify(klineData));
       return recommendPrice;
     }
     return this.marketService.createOrderPoint(list);
