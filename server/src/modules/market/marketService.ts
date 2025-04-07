@@ -20,7 +20,7 @@ export class MarketService {
       const quote = await this.quoteService.getQuote([symbol]);
       return {
         symbol: quote[0].symbol,
-        price: quote[0].lastDone,
+        price: quote[0].lastDone.toString(),
         updateTime: new Date().toISOString()
       };
     } catch (error) {
@@ -33,7 +33,6 @@ export class MarketService {
   async getKline(klineDto: KlineDto) {
     try {
       const { symbol, interval, limit = 100 } = klineDto;
-      // 将interval转换为Period类型
       const period = this.convertIntervalToPeriod(interval);
       
       const candles = await this.quoteService.getCandles(
@@ -52,18 +51,17 @@ export class MarketService {
   // 转换时间间隔为Period类型
   private convertIntervalToPeriod(interval: string): Period {
     const periodMap: { [key: string]: Period } = {
-      '1m': Period.Min1,
-      '5m': Period.Min5,
-      '15m': Period.Min15,
-      '30m': Period.Min30,
-      '1h': Period.Hour1,
-      '4h': Period.Hour4,
+      '1m': Period.Min_1,
+      '5m': Period.Min_5,
+      '15m': Period.Min_15,
+      '30m': Period.Min_30,
       '1d': Period.Day,
       '1w': Period.Week,
       '1M': Period.Month,
+      '1y': Period.Year
     };
     
-    return periodMap[interval] || Period.Min1;
+    return periodMap[interval] || Period.Min_1;
   }
 
   // 获取货币的k线
