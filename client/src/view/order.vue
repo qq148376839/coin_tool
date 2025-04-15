@@ -156,7 +156,7 @@
                   v-model="amountPercentage" 
                   :min="1" 
                   :max="100"
-                  :format-tooltip="(val) => val + '%'"
+                  :format-tooltip="(val: number) => val + '%'"
                   @input="handleSliderChange"
                 />
               </div>
@@ -209,7 +209,6 @@ import { wsApi } from '../api/longport'
 import { accountApi } from '../api/account'
 import { orderApi } from '../api/order'
 import { quoteApi } from '../api/quote'
-import type { NodeJS } from 'node'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -365,7 +364,7 @@ const getCurrentPrice = async () => {
     await getUserBalance()
     currentPrice.value = symbolMap.value[orderForm.value.symbol]
     // 自动填入当前价格作为挂单价格
-    if (!orderForm.value.price) {
+    if (currentPrice.value !== null) {
       orderForm.value.price = currentPrice.value
     }
     maxAmount.value = calculateMaxAmount()
@@ -387,7 +386,7 @@ const getPendingList = async () => {
   try {
         // 获取当前用户挂单信息
      const list = await getUserOrderList();
-    pendingList.value = list.data.data.map(item => {
+    pendingList.value = list.data.data.map((item: any) => {
       const {symbol, position, stopPrice, origQty, origType} = item;
       return {
         symbol,
