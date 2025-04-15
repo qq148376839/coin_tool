@@ -206,6 +206,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { getUserContractNews, getUserOrderList } from '../api/common'
 import { wsApi } from '../api/longport'
+import { accountApi } from '../api/account'
+import { orderApi } from '../api/order'
+import { quoteApi } from '../api/quote'
 
 // 余额相关
 const availableUsdt = ref(0)
@@ -250,75 +253,82 @@ interface SymbolMap {
 const symbolMap = ref<SymbolMap>({})
 let timer: NodeJS.Timer | null = null
 
+// 获取用户余额
+const getUserBalance = async () => {
+  try {
+    const [balanceRes, marginRes] = await Promise.all([
+      accountApi.getBalance(),
+      accountApi.getMarginRatio()
+    ]);
+    
+    availableUsdt.value = balanceRes.data.availableCash;
+    totalUsdt.value = balanceRes.data.totalCash;
+    
+    // 获取订单列表
+    const ordersRes = await orderApi.getTodayOrders();
+    orderList.value = ordersRes.data.map((order: any) => ({
+      symbol: order.symbol,
+      positionSide: order.side === 'BUY' ? 'LONG' : 'SHORT',
+      breakEvenPrice: order.price,
+      leverage: order.leverage || 1,
+      positionAmt: order.quantity,
+      unrealizedProfit: order.unrealizedPnL
+    }));
+
+    // 获取当前价格
+    if (orderForm.value.symbol) {
+      const quoteRes = await quoteApi.getQuote([orderForm.value.symbol]);
+      if (quoteRes.data && quoteRes.data.length > 0) {
+        currentPrice.value = quoteRes.data[0].lastPrice;
+        symbolMap.value[orderForm.value.symbol] = currentPrice.value;
+      }
+    }
+  } catch (error) {
+    console.error('获取余额失败:', error);
+    ElMessage.error('获取余额失败');
+  }
+}
+
 // 提交订单
 const submitOrder = async () => {
   try {
-    // 构建提交数据
-    const submitData = {
+    const orderData = {
       symbol: orderForm.value.symbol,
-      direction: orderForm.value.direction,
-      price: orderForm.value.price,
-      amount: orderForm.value.amount,
-      // 只有启用时才提交止损止盈价格
-      ...(orderForm.value.enableStopLoss ? { stopLoss: orderForm.value.stopLoss } : {}),
-      ...(orderForm.value.enableTakeProfit ? { takeProfit: orderForm.value.takeProfit } : {})
-    }
+      orderType: orderForm.value.price ? 'LIMIT' : 'MARKET',
+      side: orderForm.value.direction === 'LONG' ? 'BUY' : 'SELL',
+      quantity: orderForm.value.amount,
+      price: orderForm.value.price
+    };
 
-    // TODO: 调用下单API
-    console.log('提交数据:', submitData)
-    ElMessage.success('下单成功')
+    await orderApi.submitOrder(orderData);
+    ElMessage.success('下单成功');
     getUserBalance();
   } catch (error) {
-    ElMessage.error('下单失败')
+    console.error('下单失败:', error);
+    ElMessage.error('下单失败');
   }
 }
 
 // 平仓
-const handleClose = async () => {
+const handleClose = async (position: any) => {
   try {
-    await ElMessageBox.confirm('确认要平仓吗？', '提示')
-    // TODO: 调用平仓API
-    ElMessage.success('平仓成功')
+    await ElMessageBox.confirm('确认要平仓吗？', '提示');
+    
+    const orderData = {
+      symbol: position.symbol,
+      orderType: 'MARKET',
+      side: position.positionSide === 'LONG' ? 'SELL' : 'BUY',
+      quantity: Math.abs(position.positionAmt)
+    };
+
+    await orderApi.submitOrder(orderData);
+    ElMessage.success('平仓成功');
     getUserBalance();
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('平仓失败')
+      console.error('平仓失败:', error);
+      ElMessage.error('平仓失败');
     }
-  }
-}
-
-
-// 获取用户余额
-const getUserBalance = async () => {
-  try {
-    // TODO: 调用获取余额API
-    const res = await getUserContractNews({
-        symbol: orderForm.value.symbol
-    })
-    const {totalPrice, remainPrice, positions} = res.data.data;
-    availableUsdt.value = remainPrice
-    totalUsdt.value = totalPrice
-    orderList.value = positions
-    symbolMap.value = res.data.data.symbolMap
-    if (orderForm.value.symbol) {
-        currentPrice.value = symbolMap.value[orderForm.value.symbol]
-    }
-  } catch (error) {
-    console.error('获取余额失败:', error)
-  }
-}
-
-// 启动定时器
-const startBalanceTimer = () => {
-  getUserBalance() // 立即执行一次
-  balanceTimer = setInterval(getUserBalance, 5000)
-}
-
-// 清理定时器
-const clearBalanceTimer = () => {
-  if (balanceTimer) {
-    clearInterval(balanceTimer)
-    balanceTimer = null
   }
 }
 

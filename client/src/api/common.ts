@@ -16,23 +16,20 @@ export const getKlineData = async (params: any) => {
     return res;
 }
 
+// 获取用户信息
 export const getUserInfo = async () => {
-    const res =  await axios.get(`${baseUrl}/user/getUserInfo`);
+    const res = await axios.get(`${baseUrl}/user/info`);
     return res;
-  } 
+}
 
 // 获取用户合约信息
-export const getUserContractNews = async (params: any) => {
-const res =  await axios.get(`${baseUrl}/user/getUserContractNews`, {
-    params
-});
-return res;
-} 
-
-// 获取当前挂单信息
-export const getUserOrderList = async (params: any) => {
-    const res =  await axios.get(`${baseUrl}/order/list`, {
-        params
-    });
+export const getUserContractNews = async () => {
+    const res = await axios.get(`${baseUrl}/user/contract-news`);
     return res;
-    } 
+}
+
+// 获取用户订单列表
+export const getUserOrderList = async () => {
+    const res = await axios.get(`${baseUrl}/order/today`);
+    return res;
+} 
