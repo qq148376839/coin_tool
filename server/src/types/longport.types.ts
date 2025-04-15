@@ -4,6 +4,12 @@ export interface AccountBalance {
   availableCash: number;
   frozenCash: number;
   currency: string;
+  maxFinanceAmount: number;
+  remainingFinanceAmount: number;
+  marginRatio: number;
+  maintenanceMarginRatio: number;
+  initialMarginRatio: number;
+  toJSON: () => any;
 }
 
 export interface CashInfo {
@@ -52,14 +58,18 @@ export interface Candlestick {
 }
 
 // 订单相关类型
+export type OrderType = 'LIMIT' | 'MARKET';
+export type OrderSide = 'BUY' | 'SELL';
+export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+
 export interface Order {
   orderId: string;
   symbol: string;
-  orderType: 'LIMIT' | 'MARKET';
-  side: 'BUY' | 'SELL';
+  orderType: OrderType;
+  side: OrderSide;
   quantity: number;
   price?: number;
-  status: 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+  status: OrderStatus;
   filledQuantity: number;
   filledPrice: number;
   createdAt: number;
@@ -68,15 +78,17 @@ export interface Order {
 
 export interface SubmitOrderParams {
   symbol: string;
-  orderType: 'LIMIT' | 'MARKET';
-  side: 'BUY' | 'SELL';
+  orderType: OrderType;
+  side: OrderSide;
   quantity: number;
   price?: number;
+  submittedQuantity: number;
+  timeInForce: 'DAY' | 'GTC' | 'IOC' | 'FOK';
 }
 
 export interface SubmitOrderResponse {
   orderId: string;
-  status: 'PENDING' | 'REJECTED';
+  status: OrderStatus;
   message?: string;
 }
 
