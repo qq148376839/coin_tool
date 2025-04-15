@@ -144,7 +144,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><MoneyCircle /></el-icon>
+                  <el-icon><Money /></el-icon>
                   <span>本金</span>
                 </div>
               </template>
@@ -210,7 +210,6 @@
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { MoneyCircle, TrendChart, TopRight, Check, Warning } from '@element-plus/icons-vue'
 import { io } from 'socket.io-client'
 
 // 时间周期选项
