@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  # MySQL 数据库服务
-  mysql:
-    image: mysql:8.0
-    container_name: option_mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - ./mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - option_network
-
   # 后端服务
   backend:
     build:
@@ -40,8 +23,6 @@ services:
       - "14086:14086"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - mysql
     networks:
       - option_network
 
@@ -53,7 +34,7 @@ services:
     container_name: option_frontend
     restart: always
     ports:
-      - "80:80"
+      - "6688:6688"
     depends_on:
       - backend
     networks:
