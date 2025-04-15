@@ -181,7 +181,6 @@
       </div>
     </div>
 
-
     <!-- AI对话按钮 -->
     <el-button
       class="ai-chat-btn"
@@ -189,7 +188,7 @@
       circle
       @click="openChatDialog"
     >
-      <el-icon><ChatDotRound /></el-icon>
+      <el-icon><ChatLineRound /></el-icon>
     </el-button>
 
     <!-- AI对话弹窗 -->
@@ -234,7 +233,7 @@
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Money, ChatDotRound } from '@element-plus/icons-vue'
+import { Money, ChatLineRound } from '@element-plus/icons-vue'
 import { io } from 'socket.io-client'
 
 // 定义回测结果类型
@@ -249,7 +248,6 @@ interface BacktestResults {
 
 // 模型选项
 const modelOptions = [
-  { label: 'GPT-4', value: 'gpt4' },
   { label: 'LSTM', value: 'lstm' },
   { label: 'Transformer', value: 'transformer' },
 ]
@@ -277,7 +275,7 @@ const factorForm = reactive({
   symbol: 'DOGEUSDT',
   timeFrame: '15m',
   klineCount: 100,
-  model: 'gpt4',
+  model: 'lstm',
   profitRate: 2.0,
   stopLossRate: 1.0,
 });
