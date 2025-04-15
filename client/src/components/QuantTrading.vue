@@ -144,7 +144,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>本金</span>
                 </div>
               </template>
@@ -155,7 +155,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><TrendCharts /></el-icon>
+                  <el-icon><TrendChart /></el-icon>
                   <span>盈亏比</span>
                 </div>
               </template>
@@ -210,7 +210,7 @@
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Money, TrendCharts, TopRight, Check, Warning } from '@element-plus/icons-vue'
+import { MoneyCircle, TrendChart, TopRight, Check, Warning } from '@element-plus/icons-vue'
 import { io } from 'socket.io-client'
 
 // 时间周期选项

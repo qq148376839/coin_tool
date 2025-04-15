@@ -120,7 +120,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>初始本金</span>
                 </div>
               </template>
@@ -131,7 +131,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>盈亏比</span>
                 </div>
               </template>
@@ -144,7 +144,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>最高/最低价格</span>
                 </div>
               </template>
@@ -159,7 +159,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>盈利次数</span>
                 </div>
               </template>
@@ -170,7 +170,7 @@
             <el-card class="result-card" shadow="hover">
               <template #header>
                 <div class="card-header">
-                  <el-icon><Money /></el-icon>
+                  <el-icon><MoneyCircle /></el-icon>
                   <span>亏损次数</span>
                 </div>
               </template>
@@ -233,7 +233,7 @@
 <script setup lang="ts">
 import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Money, ChatLineRound } from '@element-plus/icons-vue'
+import { MoneyCircle, ChatLineRound } from '@element-plus/icons-vue'
 import { io } from 'socket.io-client'
 
 // 定义回测结果类型
