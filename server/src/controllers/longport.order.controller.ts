@@ -1,19 +1,17 @@
 import { Controller, Get, Post, Delete, Body, Query, Param } from '@nestjs/common';
 import { LongPortOrderService } from '../services/longport.order.service';
-import { OrderSide, OrderType } from 'longport';
+import { 
+  Order, 
+  SubmitOrderParams, 
+  SubmitOrderResponse 
+} from '../types/longport.types';
 
 @Controller('longport/order')
 export class LongPortOrderController {
   constructor(private readonly orderService: LongPortOrderService) {}
 
   @Post('submit')
-  async submitOrder(@Body() orderData: {
-    symbol: string;
-    orderType: OrderType;
-    side: OrderSide;
-    quantity: number;
-    price?: number;
-  }) {
+  async submitOrder(@Body() orderData: SubmitOrderParams): Promise<SubmitOrderResponse> {
     return await this.orderService.submitOrder(orderData);
   }
 
@@ -21,7 +19,7 @@ export class LongPortOrderController {
   async getTodayOrders(@Query() options?: {
     symbol?: string;
     status?: string[];
-  }) {
+  }): Promise<Order[]> {
     return await this.orderService.getTodayOrders(options);
   }
 
@@ -30,12 +28,12 @@ export class LongPortOrderController {
     symbol: string;
     startAt: string;
     endAt: string;
-  }) {
+  }): Promise<Order[]> {
     return await this.orderService.getHistoryOrders(options);
   }
 
   @Delete(':orderId')
-  async cancelOrder(@Param('orderId') orderId: string) {
+  async cancelOrder(@Param('orderId') orderId: string): Promise<void> {
     return await this.orderService.cancelOrder(orderId);
   }
 } 
