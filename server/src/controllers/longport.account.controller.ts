@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { LongPortAccountService } from '../services/longport.account.service';
 import { AccountBalance, CashInfo, MarginRatio } from '../types/longport.types';
 
@@ -17,7 +17,7 @@ export class LongPortAccountController {
   }
 
   @Get('margin-ratio')
-  async getMarginRatio(): Promise<MarginRatio> {
-    return await this.accountService.getMarginRatio();
+  async getMarginRatio(@Query('symbol') symbol: string): Promise<MarginRatio> {
+    return await this.accountService.getMarginRatio(symbol);
   }
 } 

@@ -92,12 +92,35 @@ export interface SubmitOrderResponse {
   message?: string;
 }
 
+export interface GetTodayOrdersOptions {
+  symbol?: string;
+  status?: OrderStatus[];
+}
+
+export interface GetHistoryOrdersOptions {
+  symbol: string;
+  startAt: Date;
+  endAt: Date;
+}
+
 // 订阅相关类型
 export type SubType = 'QUOTE' | 'DEPTH' | 'TRADE' | 'ORDER';
+export type Period = '1m' | '5m' | '15m' | '30m' | '60m' | '1d' | '1w' | '1M';
 
-export interface SubscribeParams {
-  symbols: string[];
-  subTypes: SubType[];
+export interface PushQuote {
+  symbol: string;
+  lastPrice: number;
+  openPrice: number;
+  highPrice: number;
+  lowPrice: number;
+  volume: number;
+  turnover: number;
+  timestamp: number;
+}
+
+export interface Subscription {
+  onQuote: (callback: (quote: PushQuote) => void) => void;
+  unsubscribe: () => Promise<void>;
 }
 
 // 错误类型
@@ -105,4 +128,9 @@ export interface ApiError {
   code: number;
   message: string;
   details?: any;
+}
+
+export interface SubscribeParams {
+  symbols: string[];
+  subTypes: SubType[];
 } 

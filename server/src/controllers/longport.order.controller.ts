@@ -3,7 +3,10 @@ import { LongPortOrderService } from '../services/longport.order.service';
 import { 
   Order, 
   SubmitOrderParams, 
-  SubmitOrderResponse 
+  SubmitOrderResponse,
+  OrderStatus,
+  GetTodayOrdersOptions,
+  GetHistoryOrdersOptions
 } from '../types/longport.types';
 
 @Controller('longport/order')
@@ -16,19 +19,12 @@ export class LongPortOrderController {
   }
 
   @Get('today')
-  async getTodayOrders(@Query() options?: {
-    symbol?: string;
-    status?: string[];
-  }): Promise<Order[]> {
+  async getTodayOrders(@Query() options?: GetTodayOrdersOptions): Promise<Order[]> {
     return await this.orderService.getTodayOrders(options);
   }
 
   @Get('history')
-  async getHistoryOrders(@Query() options: {
-    symbol: string;
-    startAt: string;
-    endAt: string;
-  }): Promise<Order[]> {
+  async getHistoryOrders(@Query() options: GetHistoryOrdersOptions): Promise<Order[]> {
     return await this.orderService.getHistoryOrders(options);
   }
 

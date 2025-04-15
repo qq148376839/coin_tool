@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { LongPortBaseService } from './longport.base.service';
 import { 
-  OrderSide, 
-  OrderType,
+  Order, 
+  SubmitOrderParams, 
   SubmitOrderResponse,
   OrderStatus,
-  GetHistoryOrdersOptions,
   GetTodayOrdersOptions,
-  Order
-} from 'longport';
+  GetHistoryOrdersOptions
+} from '../../types/longport.types';
 
 @Injectable()
 export class LongPortOrderService extends LongPortBaseService {
@@ -20,20 +19,22 @@ export class LongPortOrderService extends LongPortBaseService {
   }
 
   // 提交订单
-  async submitOrder(params: {
-    symbol: string;
-    orderType: OrderType;
-    side: OrderSide;
-    quantity: number;
-    price?: number;
-  }): Promise<SubmitOrderResponse> {
+  async submitOrder(params: SubmitOrderParams): Promise<SubmitOrderResponse> {
     const tradeCtx = await this.initTradeContext();
-    const response = await tradeCtx.submitOrder(params);
-    
-    // 监听订单状态变化
-    this.watchOrderStatus(response.orderId);
-    
-    return response;
+    const response = await tradeCtx.submitOrder({
+      symbol: params.symbol,
+      orderType: params.orderType,
+      side: params.side,
+      submittedQuantity: params.quantity,
+      timeInForce: params.timeInForce,
+      submittedPrice: params.price ? new Decimal(params.price) : undefined
+    });
+
+    return {
+      orderId: response.orderId,
+      status: response.status as OrderStatus,
+      message: response.message
+    };
   }
 
   // 监听订单状态
@@ -51,13 +52,39 @@ export class LongPortOrderService extends LongPortBaseService {
   // 获取今日订单
   async getTodayOrders(options?: GetTodayOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
-    return await tradeCtx.todayOrders(options);
+    const orders = await tradeCtx.todayOrders(options);
+    return orders.map(order => ({
+      orderId: order.orderId,
+      symbol: order.symbol,
+      orderType: order.orderType as OrderType,
+      side: order.side as OrderSide,
+      quantity: order.quantity,
+      price: order.price?.toNumber(),
+      status: order.status as OrderStatus,
+      filledQuantity: order.filledQuantity,
+      filledPrice: order.filledPrice?.toNumber(),
+      createdAt: order.createdAt.getTime(),
+      updatedAt: order.updatedAt.getTime()
+    }));
   }
 
   // 获取历史订单
   async getHistoryOrders(options: GetHistoryOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
-    return await tradeCtx.historyOrders(options);
+    const orders = await tradeCtx.historyOrders(options);
+    return orders.map(order => ({
+      orderId: order.orderId,
+      symbol: order.symbol,
+      orderType: order.orderType as OrderType,
+      side: order.side as OrderSide,
+      quantity: order.quantity,
+      price: order.price?.toNumber(),
+      status: order.status as OrderStatus,
+      filledQuantity: order.filledQuantity,
+      filledPrice: order.filledPrice?.toNumber(),
+      createdAt: order.createdAt.getTime(),
+      updatedAt: order.updatedAt.getTime()
+    }));
   }
 
   // 撤销订单

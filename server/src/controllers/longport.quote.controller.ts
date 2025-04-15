@@ -1,11 +1,12 @@
-import { Controller, Get, Post, Body, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query } from '@nestjs/common';
 import { LongPortQuoteService } from '../services/longport.quote.service';
 import { 
   SecurityQuote, 
   OptionQuote, 
   WarrantQuote, 
   Candlestick,
-  SubscribeParams
+  SubscribeParams,
+  SubType
 } from '../types/longport.types';
 
 @Controller('longport/quote')
@@ -46,7 +47,7 @@ export class LongPortQuoteController {
   }
 
   @Delete('unsubscribe')
-  async unsubscribe(@Body() params: { symbols: string[] }): Promise<void> {
-    return await this.quoteService.unsubscribe(params.symbols);
+  async unsubscribe(@Body() params: { symbols: string[]; subTypes: SubType[] }): Promise<void> {
+    return await this.quoteService.unsubscribe(params.symbols, params.subTypes);
   }
 } 
