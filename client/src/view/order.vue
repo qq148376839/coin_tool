@@ -357,7 +357,6 @@ const handleClose = async (position: any) => {
     }
   }
 }
-
 // 获取当前价格
 const getCurrentPrice = async () => {
   if (!orderForm.value.symbol) return
