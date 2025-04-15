@@ -3,7 +3,7 @@
     <!-- 左侧订单列表 -->
     <div class="order-list">
       <div class="header">
-        <el-button class="back-btn" @click="$router.push('/')" type="text">
+        <el-button class="back-btn" @click="goBack" type="text">
           <el-icon><ArrowLeft /></el-icon>返回首页
         </el-button>
       </div>
@@ -209,11 +209,15 @@ import { wsApi } from '../api/longport'
 import { accountApi } from '../api/account'
 import { orderApi } from '../api/order'
 import { quoteApi } from '../api/quote'
+import type { NodeJS } from 'node'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // 余额相关
 const availableUsdt = ref(0)
 const totalUsdt = ref(0)
-let balanceTimer: NodeJS.Timer | null = null
+let balanceTimer: ReturnType<typeof setInterval> | null = null
 
 // 订单表单数据
 const orderForm = ref({
@@ -234,13 +238,35 @@ const coinOptions = ref([
   { symbol: 'DOGEUSDT', label: 'DOGEUSDT' }
 ])
 
+interface Order {
+  orderId: string;
+  symbol: string;
+  side: string;
+  quantity: number;
+  price: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  leverage?: number;
+  unrealizedPnL?: number;
+}
+
+interface Position {
+  symbol: string;
+  positionSide: string;
+  breakEvenPrice: number;
+  leverage: number;
+  positionAmt: number;
+  unrealizedProfit: number;
+}
+
 // 订单列表
-const orderList = ref([])
+const orderList = ref<Position[]>([])
 
 const currentPrice = ref<number | null>(null)
 
 const activeTab = ref('position')
-const pendingList = ref([])
+const pendingList = ref<Order[]>([])
 
 const amountPercentage = ref(100)
 const maxAmount = ref(0)
@@ -251,7 +277,7 @@ interface SymbolMap {
 }
 
 const symbolMap = ref<SymbolMap>({})
-let timer: NodeJS.Timer | null = null
+let timer: ReturnType<typeof setInterval> | null = null
 
 // 获取用户余额
 const getUserBalance = async () => {
@@ -266,13 +292,13 @@ const getUserBalance = async () => {
     
     // 获取订单列表
     const ordersRes = await orderApi.getTodayOrders();
-    orderList.value = ordersRes.data.map((order: any) => ({
+    orderList.value = ordersRes.data.data.map((order: Order) => ({
       symbol: order.symbol,
       positionSide: order.side === 'BUY' ? 'LONG' : 'SHORT',
       breakEvenPrice: order.price,
       leverage: order.leverage || 1,
       positionAmt: order.quantity,
-      unrealizedProfit: order.unrealizedPnL
+      unrealizedProfit: order.unrealizedPnL || 0
     }));
 
     // 获取当前价格
@@ -392,15 +418,16 @@ const getPendingList = async () => {
 }
 
 // 撤销挂单
-const handleCancelPending = async (order) => {
+const handleCancelPending = async (order: Order) => {
   try {
-    await ElMessageBox.confirm('确认要撤销此挂单吗？', '提示')
-    // TODO: 调用撤销挂单API
-    ElMessage.success('撤销成功')
-    await getPendingList()
+    await ElMessageBox.confirm('确认要取消订单吗？', '提示');
+    await orderApi.cancelOrder(order.orderId);
+    ElMessage.success('取消订单成功');
+    await getTodayOrders();
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('撤销失败')
+      console.error('取消订单失败:', error);
+      ElMessage.error('取消订单失败');
     }
   }
 }
@@ -472,13 +499,51 @@ const getProfitClass = (profit: number) => {
 }
 
 // 订单状态更新处理
-const handleOrderUpdate = (order: any) => {
-  const index = orderList.value.findIndex(o => o.orderId === order.orderId);
+const handleOrderUpdate = (order: Order) => {
+  const index = orderList.value.findIndex((o: Position) => o.symbol === order.symbol);
   if (index !== -1) {
-    orderList.value[index] = order;
+    orderList.value[index] = {
+      symbol: order.symbol,
+      positionSide: order.side === 'BUY' ? 'LONG' : 'SHORT',
+      breakEvenPrice: order.price,
+      leverage: 1,
+      positionAmt: order.quantity,
+      unrealizedProfit: 0
+    };
   } else {
-    orderList.value.unshift(order);
+    orderList.value.unshift({
+      symbol: order.symbol,
+      positionSide: order.side === 'BUY' ? 'LONG' : 'SHORT',
+      breakEvenPrice: order.price,
+      leverage: 1,
+      positionAmt: order.quantity,
+      unrealizedProfit: 0
+    });
   }
+  getTodayOrders();
+}
+
+const getTodayOrders = async () => {
+  try {
+    const list = await orderApi.getTodayOrders();
+    pendingList.value = list.data.data.map((item: Order) => ({
+      orderId: item.orderId,
+      symbol: item.symbol,
+      side: item.side,
+      quantity: item.quantity,
+      price: item.price,
+      status: item.status,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt
+    }));
+  } catch (error) {
+    console.error('获取订单列表失败:', error);
+    ElMessage.error('获取订单列表失败');
+  }
+}
+
+const goBack = () => {
+  router.back();
 }
 
 onMounted(async () => {
