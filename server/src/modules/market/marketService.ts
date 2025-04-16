@@ -13,6 +13,21 @@ import {
 export class MarketService {
   constructor(private readonly quoteService: LongPortQuoteService) {}
 
+  private readonly periodMap: Record<string, Period> = {
+    '1m': Period.MIN_1,
+    '5m': Period.MIN_5,
+    '15m': Period.MIN_15,
+    '30m': Period.MIN_30,
+    '60m': Period.MIN_60,
+    '1d': Period.DAY,
+    '1w': Period.WEEK,
+    '1M': Period.MONTH
+  };
+
+  getPeriod(interval: string): Period {
+    return this.periodMap[interval] || Period.MIN_1;
+  }
+
   // 获取价格
   async getPrice(symbol: string): Promise<PriceDto> {
     try {
@@ -32,7 +47,7 @@ export class MarketService {
   async getKline(klineDto: KlineDto) {
     try {
       const { symbol, interval, limit = 100 } = klineDto;
-      const period = this.convertIntervalToPeriod(interval);
+      const period = this.getPeriod(interval);
       
       const candles = await this.quoteService.getCandles(
         symbol,
@@ -45,22 +60,6 @@ export class MarketService {
       console.log(error);
       throw new Error('获取K线数据失败');
     }
-  }
-
-  // 转换时间间隔为Period类型
-  private convertIntervalToPeriod(interval: string): Period {
-    const periodMap: { [key: string]: Period } = {
-      '1m': Period.Min_1,
-      '5m': Period.Min_5,
-      '15m': Period.Min_15,
-      '30m': Period.Min_30,
-      '60m': Period.Min_60,
-      '1d': Period.Day,
-      '1w': Period.Week,
-      '1M': Period.Month,
-    };
-    
-    return periodMap[interval] || Period.Min_1;
   }
 
   // 获取货币的k线

@@ -7,7 +7,7 @@ export class LongPortAccountController {
   constructor(private readonly accountService: LongPortAccountService) {}
 
   @Get('balance')
-  async getAccountBalance(): Promise<AccountBalance> {
+  async getAccountBalance(): Promise<AccountBalance[]> {
     return await this.accountService.getAccountBalance();
   }
 

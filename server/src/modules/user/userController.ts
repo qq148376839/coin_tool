@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { UserService } from './userService';
+import { MarginRatio } from './margin-ratio.entity';
 
 @Controller('user')
 export class UserController {
@@ -10,8 +11,8 @@ export class UserController {
     return await this.userService.getUserInfo();
   }
 
-  @Get('contract-news')
-  async getUserContractNews() {
-    return await this.userService.getUserContractNews();
+  @Get('contract/:symbol')
+  async getUserContractNews(@Param('symbol') symbol: string): Promise<MarginRatio> {
+    return await this.userService.getUserContractNews(symbol);
   }
 }

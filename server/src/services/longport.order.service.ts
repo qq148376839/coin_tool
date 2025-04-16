@@ -86,9 +86,9 @@ export class LongPortOrderService extends LongPortBaseService {
       quantity: order.quantity.toNumber(),
       price: order.price?.toNumber(),
       status: order.status as OrderStatus,
-      filledQuantity: order.filledQuantity.toNumber(),
-      filledPrice: order.filledPrice.toNumber(),
-      createdAt: order.createdAt.getTime(),
+      executedQuantity: order.executedQuantity.toNumber(),
+      executedPrice: order.executedPrice.toNumber(),
+      submittedAt: order.submittedAt.getTime(),
       updatedAt: order.updatedAt.getTime()
     }));
   }
@@ -110,9 +110,9 @@ export class LongPortOrderService extends LongPortBaseService {
       quantity: order.quantity.toNumber(),
       price: order.price?.toNumber(),
       status: order.status as OrderStatus,
-      filledQuantity: order.filledQuantity.toNumber(),
-      filledPrice: order.filledPrice.toNumber(),
-      createdAt: order.createdAt.getTime(),
+      executedQuantity: order.executedQuantity.toNumber(),
+      executedPrice: order.executedPrice.toNumber(),
+      submittedAt: order.submittedAt.getTime(),
       updatedAt: order.updatedAt.getTime()
     }));
   }

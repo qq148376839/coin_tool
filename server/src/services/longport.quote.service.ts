@@ -166,14 +166,23 @@ export class LongPortQuoteService extends LongPortBaseService {
   async subscribe(symbols: string[], subTypes: SubType[]): Promise<void> {
     try {
       const quoteCtx = await this.initQuoteContext();
-      const subscription = await quoteCtx.subscribe(symbols, subTypes, true);
+      await quoteCtx.subscribe(symbols, subTypes, true);
       
-      subscription.on('quote', (quote: PushQuote) => {
-        this.pushCallbacks.forEach(callback => callback(quote));
+      quoteCtx.setOnQuote((err, event) => {
+        if (!err && event) {
+          this.pushCallbacks.forEach(callback => callback(event));
+        }
       });
 
       symbols.forEach(symbol => {
-        this.subscriptions.set(symbol, subscription);
+        this.subscriptions.set(symbol, {
+          onQuote: (callback) => {
+            this.pushCallbacks.push(callback);
+          },
+          unsubscribe: () => {
+            this.unsubscribe([symbol], subTypes);
+          }
+        });
       });
     } catch (error) {
       logError(error, 'LongPortQuoteService.subscribe');
