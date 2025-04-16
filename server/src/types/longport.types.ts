@@ -39,7 +39,7 @@ export interface SecurityQuote {
 export interface OptionQuote extends SecurityQuote {
   strikePrice: number;
   expirationDate: string;
-  optionType: 'CALL' | 'PUT';
+  optionType: string;
 }
 
 export interface WarrantQuote extends SecurityQuote {
@@ -104,8 +104,24 @@ export interface GetHistoryOrdersOptions {
 }
 
 // 订阅相关类型
-export type SubType = 'QUOTE' | 'DEPTH' | 'TRADE' | 'ORDER';
-export type Period = '1m' | '5m' | '15m' | '30m' | '60m' | '1d' | '1w' | '1M';
+export enum SubType {
+  QUOTE = 'quote',
+  DEPTH = 'depth',
+  BROKER = 'broker',
+  TRADE = 'trade'
+}
+
+export enum Period {
+  MIN_1 = '1m',
+  MIN_5 = '5m',
+  MIN_15 = '15m',
+  MIN_30 = '30m',
+  MIN_60 = '60m',
+  DAY = '1d',
+  WEEK = '1w',
+  MONTH = '1M',
+  YEAR = '1Y'
+}
 
 export interface PushQuote {
   symbol: string;
@@ -120,7 +136,7 @@ export interface PushQuote {
 
 export interface Subscription {
   onQuote: (callback: (quote: PushQuote) => void) => void;
-  unsubscribe: () => Promise<void>;
+  unsubscribe: () => void;
 }
 
 // 错误类型
