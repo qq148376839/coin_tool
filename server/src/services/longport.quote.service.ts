@@ -167,12 +167,17 @@ export class LongPortQuoteService extends LongPortBaseService {
     try {
       const quoteCtx = await this.initQuoteContext();
       await quoteCtx.subscribe(symbols, subTypes, true);
-      
-      quoteCtx.setOnQuote((err, event) => {
-        if (!err && event) {
-          this.pushCallbacks.forEach(callback => callback(event));
-        }
-      });
+
+      // 使用轮询方式获取最新行情
+      const checkQuotes = async () => {
+        const quotes = await this.getQuote(symbols);
+        quotes.forEach(quote => {
+          this.pushCallbacks.forEach(callback => callback(quote));
+        });
+      };
+
+      // 每1秒获取一次最新行情
+      const interval = setInterval(checkQuotes, 1000);
 
       symbols.forEach(symbol => {
         this.subscriptions.set(symbol, {
@@ -181,6 +186,7 @@ export class LongPortQuoteService extends LongPortBaseService {
           },
           unsubscribe: () => {
             this.unsubscribe([symbol], subTypes);
+            clearInterval(interval);
           }
         });
       });

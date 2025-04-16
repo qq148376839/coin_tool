@@ -62,11 +62,21 @@ export class LongPortOrderService extends LongPortBaseService {
   private async watchOrderStatus(orderId: string) {
     const tradeCtx = await this.initTradeContext();
     
-    tradeCtx.setOnOrderChanged((err, event) => {
-      if (!err && event && event.orderId === orderId) {
-        this.orderCallbacks.forEach(callback => callback(event));
+    // 使用轮询方式检查订单状态
+    const checkOrderStatus = async () => {
+      const order = await tradeCtx.orderDetail(orderId);
+      if (order) {
+        this.orderCallbacks.forEach(callback => callback(order));
       }
-    });
+    };
+
+    // 每5秒检查一次订单状态
+    const interval = setInterval(checkOrderStatus, 5000);
+
+    // 30分钟后停止检查
+    setTimeout(() => {
+      clearInterval(interval);
+    }, 30 * 60 * 1000);
   }
 
   /**
