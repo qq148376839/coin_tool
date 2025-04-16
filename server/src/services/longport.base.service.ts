@@ -6,10 +6,11 @@ import config from '../config/common';
 export class LongPortBaseService {
   protected tradeContext: TradeContext;
   protected quoteContext: QuoteContext;
+  protected longPortConfig: any;
 
   constructor() {
     // 初始化配置
-    const longPortConfig = {
+    this.longPortConfig = {
       appKey: config().longPort.appKey,
       appSecret: config().longPort.appSecret,
       accessToken: config().longPort.accessToken,
@@ -17,24 +18,21 @@ export class LongPortBaseService {
     };
 
     // 初始化交易上下文
-    this.initTradeContext(longPortConfig);
+    this.tradeContext = new TradeContext();
+    this.tradeContext.setConfig(this.longPortConfig);
+
     // 初始化行情上下文
-    this.initQuoteContext(longPortConfig);
+    this.quoteContext = new QuoteContext();
+    this.quoteContext.setConfig(this.longPortConfig);
   }
 
   // 初始化交易上下文
-  protected async initTradeContext(config: any) {
-    if (!this.tradeContext) {
-      this.tradeContext = await TradeContext.new(config);
-    }
+  protected async initTradeContext() {
     return this.tradeContext;
   }
 
   // 初始化行情上下文
-  protected async initQuoteContext(config: any) {
-    if (!this.quoteContext) {
-      this.quoteContext = await QuoteContext.new(config);
-    }
+  protected async initQuoteContext() {
     return this.quoteContext;
   }
 } 

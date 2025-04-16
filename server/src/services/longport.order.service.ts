@@ -64,8 +64,9 @@ export class LongPortOrderService extends LongPortBaseService {
     
     // 使用轮询方式检查订单状态
     const checkOrderStatus = async () => {
-      const order = await tradeCtx.orderDetail(orderId);
-      if (order) {
+      const orders = await tradeCtx.todayOrders({ orderId });
+      if (orders && orders.length > 0) {
+        const order = orders[0];
         this.orderCallbacks.forEach(callback => callback(order));
       }
     };
