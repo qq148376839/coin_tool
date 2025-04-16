@@ -1,5 +1,4 @@
 import { Decimal } from 'decimal.js';
-import { OrderStatus, TimeInForceType, OrderType, OrderSide } from 'longport';
 
 // 账户相关类型
 export interface AccountBalance {
@@ -35,7 +34,7 @@ export interface MarginRatio {
 // 行情相关类型
 export interface SecurityQuote {
   symbol: string;
-  lastPrice: number;
+  lastDone: number;
   openPrice: number;
   highPrice: number;
   lowPrice: number;
@@ -66,6 +65,11 @@ export interface Candlestick {
 }
 
 // 订单相关类型
+export type OrderType = 'LIMIT' | 'MARKET';
+export type OrderSide = 'BUY' | 'SELL';
+export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+export type TimeInForceType = 'Day' | 'GoodTilCanceled' | 'GoodTilDate';
+
 export interface Order {
   orderId: string;
   status: OrderStatus;
@@ -74,7 +78,7 @@ export interface Order {
   executedQuantity: number;
   price: number;
   executedPrice: number;
-  submittedAt: Date;
+  submittedAt: number;
   side: OrderSide;
   symbol: string;
   orderType: OrderType;
@@ -84,14 +88,14 @@ export interface Order {
   tag: string;
   timeInForce: TimeInForceType;
   expireDate: string;
-  updatedAt: Date;
-  triggerAt: Date;
+  updatedAt: number;
+  triggerAt: number;
   trailingAmount: number;
   trailingPercent: number;
   limitOffset: number;
   triggerStatus: string;
   currency: string;
-  outsideRth: boolean;
+  outsideRth: string;
   remark: string;
 }
 
@@ -100,7 +104,7 @@ export interface SubmitOrderParams {
   orderType: OrderType;
   side: OrderSide;
   quantity: number;
-  price: number;
+  price?: number;
   timeInForce: TimeInForceType;
 }
 
@@ -112,45 +116,37 @@ export interface SubmitOrderResponse {
 export interface GetTodayOrdersOptions {
   symbol?: string;
   status?: OrderStatus[];
-  side?: OrderSide;
-  market?: string;
-  startAt?: Date;
-  endAt?: Date;
 }
 
 export interface GetHistoryOrdersOptions {
-  symbol?: string;
-  status?: OrderStatus[];
-  side?: OrderSide;
-  market?: string;
-  startAt?: Date;
-  endAt?: Date;
+  symbol: string;
+  startAt: Date;
+  endAt: Date;
 }
 
 // 订阅相关类型
 export enum SubType {
-  Quote = 'Quote',
-  Depth = 'Depth',
-  Brokers = 'Brokers',
-  Trade = 'Trade'
+  QUOTE = 'Quote',
+  DEPTH = 'Depth',
+  BROKER = 'Brokers',
+  TRADE = 'Trade'
 }
 
 export enum Period {
-  Unknown = 'Unknown',
-  Min_1 = 'Min_1',
-  Min_5 = 'Min_5',
-  Min_15 = 'Min_15',
-  Min_30 = 'Min_30',
-  Min_60 = 'Min_60',
-  Day = 'Day',
-  Week = 'Week',
-  Month = 'Month',
-  Year = 'Year'
+  MIN_1 = 'Min_1',
+  MIN_5 = 'Min_5',
+  MIN_15 = 'Min_15',
+  MIN_30 = 'Min_30',
+  MIN_60 = 'Min_60',
+  DAY = 'Day',
+  WEEK = 'Week',
+  MONTH = 'Month',
+  YEAR = 'Year'
 }
 
 export interface PushQuote {
   symbol: string;
-  lastPrice: number;
+  lastDone: number;
   openPrice: number;
   highPrice: number;
   lowPrice: number;

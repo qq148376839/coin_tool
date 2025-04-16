@@ -49,10 +49,14 @@ export class LongPortAccountService extends LongPortBaseService {
     const balances = await tradeCtx.accountBalance();
     // 使用第一个账户的现金信息
     const balance = balances[0];
+    // 使用 cashInfos 数组中的第一个元素
+    const cashInfo = balance.cashInfos[0];
     return {
-      availableCash: balance.availableCash.toNumber(),
-      frozenCash: balance.frozenCash.toNumber(),
-      currency: balance.currency
+      withdrawCash: cashInfo.withdrawCash.toNumber(),
+      availableCash: cashInfo.availableCash.toNumber(),
+      frozenCash: cashInfo.frozenCash.toNumber(),
+      settlingCash: cashInfo.settlingCash.toNumber(),
+      currency: cashInfo.currency
     };
   }
 
@@ -66,9 +70,9 @@ export class LongPortAccountService extends LongPortBaseService {
     const tradeCtx = await this.initTradeContext();
     const marginRatio = await tradeCtx.marginRatio(symbol);
     return {
-      initialMarginRatio: marginRatio.imFactor.toNumber(),
-      maintenanceMarginRatio: marginRatio.mmFactor.toNumber(),
-      currency: 'HKD' // 根据文档，MarginRatio 不包含 currency 属性，这里使用默认值
+      imFactor: marginRatio.imFactor.toNumber(),
+      mmFactor: marginRatio.mmFactor.toNumber(),
+      fmFactor: marginRatio.fmFactor.toNumber()
     };
   }
 } 
