@@ -42,9 +42,9 @@ export class LongPortGateway implements OnGatewayConnection, OnGatewayDisconnect
     console.log(`Client disconnected: ${client.id}`);
     const symbols = this.subscriptions.get(client.id);
     if (symbols) {
-      this.quoteService.unsubscribe(Array.from(symbols));
+      this.quoteService.unsubscribe(Array.from(symbols), ['QUOTE']);
+      this.subscriptions.delete(client.id);
     }
-    this.subscriptions.delete(client.id);
     this.orderSubscriptions.delete(client.id);
   }
 
@@ -80,6 +80,24 @@ export class LongPortGateway implements OnGatewayConnection, OnGatewayDisconnect
   async handleUnsubscribeOrders(client: Socket) {
     try {
       this.orderSubscriptions.delete(client.id);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  @SubscribeMessage('unsubscribe')
+  async handleUnsubscribe(
+    client: Socket,
+    payload: { symbols: string[]; subTypes: SubType[] }
+  ) {
+    try {
+      const { symbols, subTypes } = payload;
+      await this.quoteService.unsubscribe(symbols, subTypes);
+      
+      const clientSymbols = this.subscriptions.get(client.id);
+      symbols.forEach(symbol => clientSymbols?.delete(symbol));
+
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };

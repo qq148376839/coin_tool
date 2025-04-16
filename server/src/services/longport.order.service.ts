@@ -6,8 +6,11 @@ import {
   SubmitOrderResponse,
   OrderStatus,
   GetTodayOrdersOptions,
-  GetHistoryOrdersOptions
+  GetHistoryOrdersOptions,
+  OrderType,
+  OrderSide
 } from '../../types/longport.types';
+import { Decimal } from 'decimal.js';
 
 @Injectable()
 export class LongPortOrderService extends LongPortBaseService {
