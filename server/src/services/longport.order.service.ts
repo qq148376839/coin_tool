@@ -1,16 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { TradeContext, OrderType, OrderSide, OrderStatus, TimeInForceType } from 'longport';
+import { Order, SubmitOrderParams, SubmitOrderResponse, GetTodayOrdersOptions, GetHistoryOrdersOptions } from '../types/longport.types';
 import { LongPortBaseService } from './longport.base.service';
-import { 
-  Order, 
-  SubmitOrderParams, 
-  SubmitOrderResponse,
-  OrderStatus,
-  GetTodayOrdersOptions,
-  GetHistoryOrdersOptions,
-  OrderType,
-  OrderSide
-} from '@/types/longport.types';
-import { Decimal } from 'decimal.js';
+import { ApiError, ErrorCode, handleError, logError } from '../utils/error-handler';
 
 /**
  * 长桥订单服务
@@ -19,7 +12,18 @@ import { Decimal } from 'decimal.js';
  */
 @Injectable()
 export class LongPortOrderService extends LongPortBaseService {
+  private readonly logger = new Logger(LongPortOrderService.name);
+  private tradeContext: TradeContext;
   private orderCallbacks: ((order: Order) => void)[] = [];
+
+  constructor(private configService: ConfigService) {
+    super();
+    this.tradeContext = new TradeContext({
+      appKey: this.configService.get<string>('LONGPORT_APP_KEY'),
+      appSecret: this.configService.get<string>('LONGPORT_APP_SECRET'),
+      accessToken: this.configService.get<string>('LONGPORT_ACCESS_TOKEN'),
+    });
+  }
 
   /**
    * 添加订单更新回调
@@ -38,18 +42,19 @@ export class LongPortOrderService extends LongPortBaseService {
    */
   async submitOrder(params: SubmitOrderParams): Promise<SubmitOrderResponse> {
     const tradeCtx = await this.initTradeContext();
-    const response = await tradeCtx.submitOrder({
+    const order = await tradeCtx.submitOrder({
       symbol: params.symbol,
       orderType: params.orderType,
       side: params.side,
-      submittedQuantity: new Decimal(params.quantity),
+      submittedQuantity: params.quantity,
+      submittedPrice: params.price,
       timeInForce: params.timeInForce,
-      submittedPrice: params.price ? new Decimal(params.price) : undefined
+      remark: '',
     });
 
     return {
-      orderId: response.orderId,
-      status: response.status
+      orderId: order.orderId,
+      status: order.status,
     };
   }
 
@@ -94,11 +99,11 @@ export class LongPortOrderService extends LongPortBaseService {
       symbol: order.symbol,
       orderType: order.orderType,
       side: order.side,
-      quantity: order.quantity.toNumber(),
-      price: order.price?.toNumber(),
+      quantity: Number(order.quantity),
+      price: Number(order.price),
       status: order.status as OrderStatus,
-      executedQuantity: order.executedQuantity.toNumber(),
-      executedPrice: order.executedPrice.toNumber(),
+      executedQuantity: Number(order.executedQuantity),
+      executedPrice: Number(order.executedPrice),
       submittedAt: order.submittedAt.getTime(),
       updatedAt: order.updatedAt.getTime()
     }));
@@ -110,21 +115,44 @@ export class LongPortOrderService extends LongPortBaseService {
    * @param options 查询选项，包括股票代码、开始时间、结束时间等
    * @returns 返回历史订单列表
    */
-  async getHistoryOrders(options: GetHistoryOrdersOptions): Promise<Order[]> {
+  async getHistoryOrders(options?: GetHistoryOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
-    const orders = await tradeCtx.historyOrders(options);
+    const orders = await tradeCtx.historyOrders({
+      symbol: options?.symbol,
+      status: options?.status,
+      side: options?.side,
+      market: options?.market,
+      startAt: options?.startAt?.getTime(),
+      endAt: options?.endAt?.getTime(),
+    });
+
     return orders.map(order => ({
       orderId: order.orderId,
+      status: order.status,
+      stockName: order.stockName || '',
+      quantity: Number(order.quantity),
+      executedQuantity: Number(order.executedQuantity),
+      price: Number(order.price),
+      executedPrice: Number(order.executedPrice),
+      submittedAt: new Date(order.submittedAt),
+      side: order.side,
       symbol: order.symbol,
       orderType: order.orderType,
-      side: order.side,
-      quantity: order.quantity.toNumber(),
-      price: order.price?.toNumber(),
-      status: order.status as OrderStatus,
-      executedQuantity: order.executedQuantity.toNumber(),
-      executedPrice: order.executedPrice.toNumber(),
-      submittedAt: order.submittedAt.getTime(),
-      updatedAt: order.updatedAt.getTime()
+      lastDone: Number(order.lastDone || 0),
+      triggerPrice: Number(order.triggerPrice || 0),
+      msg: order.msg || '',
+      tag: order.tag || '',
+      timeInForce: order.timeInForce,
+      expireDate: order.expireDate?.toString() || '',
+      updatedAt: new Date(order.updatedAt),
+      triggerAt: order.triggerAt ? new Date(order.triggerAt) : new Date(),
+      trailingAmount: Number(order.trailingAmount || 0),
+      trailingPercent: Number(order.trailingPercent || 0),
+      limitOffset: Number(order.limitOffset || 0),
+      triggerStatus: order.triggerStatus || '',
+      currency: order.currency || '',
+      outsideRth: Boolean(order.outsideRth),
+      remark: order.remark || '',
     }));
   }
 
@@ -139,36 +167,75 @@ export class LongPortOrderService extends LongPortBaseService {
     await tradeCtx.cancelOrder(orderId);
   }
 
-  async getOrders(): Promise<Order[]> {
+  async getOrders(options?: GetTodayOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
-    const orders = await tradeCtx.todayOrders();
+    const orders = await tradeCtx.todayOrders({
+      symbol: options?.symbol,
+      status: options?.status,
+      side: options?.side,
+      market: options?.market,
+      startAt: options?.startAt?.getTime(),
+      endAt: options?.endAt?.getTime(),
+    });
+
     return orders.map(order => ({
       orderId: order.orderId,
       status: order.status,
-      stockName: order.stockName,
-      quantity: order.quantity.toNumber(),
-      executedQuantity: order.executedQuantity.toNumber(),
-      price: order.price.toNumber(),
-      executedPrice: order.executedPrice.toNumber(),
-      submittedAt: order.submittedAt.getTime(),
-      updatedAt: order.updatedAt.getTime(),
+      stockName: order.stockName || '',
+      quantity: Number(order.quantity),
+      executedQuantity: Number(order.executedQuantity),
+      price: Number(order.price),
+      executedPrice: Number(order.executedPrice),
+      submittedAt: new Date(order.submittedAt),
       side: order.side,
-      orderType: order.orderType,
-      timeInForce: order.timeInForce,
       symbol: order.symbol,
-      lastDone: order.lastDone?.toNumber() || 0,
-      triggerPrice: order.triggerPrice?.toNumber() || 0,
+      orderType: order.orderType,
+      lastDone: Number(order.lastDone || 0),
+      triggerPrice: Number(order.triggerPrice || 0),
       msg: order.msg || '',
       tag: order.tag || '',
-      expireDate: order.expireDate || '',
-      triggerAt: order.triggerAt || 0,
-      trailingAmount: order.trailingAmount?.toNumber() || 0,
-      trailingPercent: order.trailingPercent?.toNumber() || 0,
-      limitOffset: order.limitOffset?.toNumber() || 0,
+      timeInForce: order.timeInForce,
+      expireDate: order.expireDate?.toString() || '',
+      updatedAt: new Date(order.updatedAt),
+      triggerAt: order.triggerAt ? new Date(order.triggerAt) : new Date(),
+      trailingAmount: Number(order.trailingAmount || 0),
+      trailingPercent: Number(order.trailingPercent || 0),
+      limitOffset: Number(order.limitOffset || 0),
       triggerStatus: order.triggerStatus || '',
       currency: order.currency || '',
-      outsideRth: order.outsideRth || '',
-      remark: order.remark || ''
+      outsideRth: Boolean(order.outsideRth),
+      remark: order.remark || '',
     }));
+  }
+
+  private mapOrderToInterface(order: any): Order {
+    return {
+      orderId: order.orderId,
+      status: order.status,
+      stockName: order.stockName || '',
+      quantity: Number(order.quantity),
+      executedQuantity: Number(order.executedQuantity),
+      price: Number(order.price),
+      executedPrice: Number(order.executedPrice),
+      submittedAt: new Date(order.submittedAt),
+      side: order.side,
+      symbol: order.symbol,
+      orderType: order.orderType,
+      lastDone: Number(order.lastDone || 0),
+      triggerPrice: Number(order.triggerPrice || 0),
+      msg: order.msg || '',
+      tag: order.tag || '',
+      timeInForce: order.timeInForce,
+      expireDate: order.expireDate?.toString() || '',
+      updatedAt: new Date(order.updatedAt),
+      triggerAt: order.triggerAt ? new Date(order.triggerAt) : new Date(),
+      trailingAmount: Number(order.trailingAmount || 0),
+      trailingPercent: Number(order.trailingPercent || 0),
+      limitOffset: Number(order.limitOffset || 0),
+      triggerStatus: order.triggerStatus || '',
+      currency: order.currency || '',
+      outsideRth: Boolean(order.outsideRth),
+      remark: order.remark || '',
+    };
   }
 } 

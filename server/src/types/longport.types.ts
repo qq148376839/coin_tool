@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js';
+import { OrderStatus, TimeInForceType, OrderType, OrderSide } from 'longport';
 
 // 账户相关类型
 export interface AccountBalance {
@@ -65,10 +66,6 @@ export interface Candlestick {
 }
 
 // 订单相关类型
-export type OrderType = 'LIMIT' | 'MARKET';
-export type OrderSide = 'BUY' | 'SELL';
-export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
-
 export interface Order {
   orderId: string;
   status: OrderStatus;
@@ -77,7 +74,7 @@ export interface Order {
   executedQuantity: number;
   price: number;
   executedPrice: number;
-  submittedAt: number;
+  submittedAt: Date;
   side: OrderSide;
   symbol: string;
   orderType: OrderType;
@@ -85,16 +82,16 @@ export interface Order {
   triggerPrice: number;
   msg: string;
   tag: string;
-  timeInForce: string;
+  timeInForce: TimeInForceType;
   expireDate: string;
-  updatedAt: number;
-  triggerAt: number;
+  updatedAt: Date;
+  triggerAt: Date;
   trailingAmount: number;
   trailingPercent: number;
   limitOffset: number;
   triggerStatus: string;
   currency: string;
-  outsideRth: string;
+  outsideRth: boolean;
   remark: string;
 }
 
@@ -103,8 +100,8 @@ export interface SubmitOrderParams {
   orderType: OrderType;
   side: OrderSide;
   quantity: number;
-  price?: number;
-  timeInForce: string;
+  price: number;
+  timeInForce: TimeInForceType;
 }
 
 export interface SubmitOrderResponse {
@@ -115,32 +112,40 @@ export interface SubmitOrderResponse {
 export interface GetTodayOrdersOptions {
   symbol?: string;
   status?: OrderStatus[];
+  side?: OrderSide;
+  market?: string;
+  startAt?: Date;
+  endAt?: Date;
 }
 
 export interface GetHistoryOrdersOptions {
-  symbol: string;
-  startAt: Date;
-  endAt: Date;
+  symbol?: string;
+  status?: OrderStatus[];
+  side?: OrderSide;
+  market?: string;
+  startAt?: Date;
+  endAt?: Date;
 }
 
 // 订阅相关类型
 export enum SubType {
-  QUOTE = 'quote',
-  DEPTH = 'depth',
-  BROKER = 'broker',
-  TRADE = 'trade'
+  Quote = 'Quote',
+  Depth = 'Depth',
+  Brokers = 'Brokers',
+  Trade = 'Trade'
 }
 
 export enum Period {
-  MIN_1 = '1m',
-  MIN_5 = '5m',
-  MIN_15 = '15m',
-  MIN_30 = '30m',
-  MIN_60 = '60m',
-  DAY = '1d',
-  WEEK = '1w',
-  MONTH = '1M',
-  YEAR = '1Y'
+  Unknown = 'Unknown',
+  Min_1 = 'Min_1',
+  Min_5 = 'Min_5',
+  Min_15 = 'Min_15',
+  Min_30 = 'Min_30',
+  Min_60 = 'Min_60',
+  Day = 'Day',
+  Week = 'Week',
+  Month = 'Month',
+  Year = 'Year'
 }
 
 export interface PushQuote {
