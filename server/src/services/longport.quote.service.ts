@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QuoteContext, SecurityQuote as LongPortQuote, OptionQuote as LongPortOptionQuote, WarrantQuote as LongPortWarrantQuote, Candlestick as LongPortCandlestick } from 'longport';
-import { SecurityQuote, OptionQuote, WarrantQuote, Candlestick, SubType, Period, PushQuote, Subscription } from '../../types/longport.types';
+import { SecurityQuote, OptionQuote, WarrantQuote, Candlestick, SubType, Period, PushQuote, Subscription } from '@/types/longport.types';
 import { LongPortBaseService } from './longport.base.service';
 import { ApiError, ErrorCode, handleError, logError } from '../utils/error-handler';
 

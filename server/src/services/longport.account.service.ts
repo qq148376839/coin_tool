@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LongPortBaseService } from './longport.base.service';
-import { AccountBalance, CashInfo, MarginRatio } from '../../types/longport.types';
+import { AccountBalance, CashInfo, MarginRatio } from '@/types/longport.types';
 
 /**
  * 长桥账户服务

@@ -9,7 +9,7 @@ import {
   GetHistoryOrdersOptions,
   OrderType,
   OrderSide
-} from '../../types/longport.types';
+} from '@/types/longport.types';
 import { Decimal } from 'decimal.js';
 
 /**

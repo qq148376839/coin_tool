@@ -1,6 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { UserService } from './userService';
-import { MarginRatio } from './margin-ratio.entity';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { UserService } from './user.service';
+import { MarginRatio } from '@/types/longport.types';
 
 @Controller('user')
 export class UserController {
