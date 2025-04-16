@@ -7,7 +7,6 @@ import config from './config/common';
 import { MarketModule } from './modules/market/market.module';
 import { UserModule } from './modules/user/user.module';
 import { AiModule } from './modules/ai/ai.module';
-import { OrderModule } from './modules/order/order.module';
 import { SocketModule } from './modules/socket/socket.module';
 import { LongPortBaseService } from './services/longport.base.service';
 import { LongPortAccountService } from './services/longport.account.service';
@@ -27,7 +26,6 @@ import { LongPortGateway } from './gateways/longport.gateway';
     MarketModule,
     UserModule,
     AiModule,
-    OrderModule,
     SocketModule,
   ],
   controllers: [

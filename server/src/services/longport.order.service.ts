@@ -32,10 +32,9 @@ export class LongPortOrderService extends LongPortBaseService {
 
   /**
    * 提交订单
-   * 通过长桥API提交一个新的交易订单
-   * @param params 订单参数，包含股票代码、订单类型、买卖方向等信息
-   * @returns 返回订单提交响应，包含订单ID和状态
-   * @throws 当API调用失败时抛出错误
+   * 向长桥API提交一个新的订单
+   * @param params 订单参数，包括股票代码、订单类型、买卖方向、数量、价格等
+   * @returns 返回订单提交结果，包括订单ID和状态
    */
   async submitOrder(params: SubmitOrderParams): Promise<SubmitOrderResponse> {
     const tradeCtx = await this.initTradeContext();
@@ -43,15 +42,14 @@ export class LongPortOrderService extends LongPortBaseService {
       symbol: params.symbol,
       orderType: params.orderType,
       side: params.side,
-      submittedQuantity: params.quantity,
-      timeInForce: params.timeInForce,
-      submittedPrice: params.price ? new Decimal(params.price) : undefined
+      quantity: params.quantity,
+      price: params.price,
+      timeInForce: params.timeInForce
     });
 
     return {
       orderId: response.orderId,
-      status: response.status as OrderStatus,
-      message: response.message
+      status: response.status as OrderStatus
     };
   }
 
@@ -73,10 +71,9 @@ export class LongPortOrderService extends LongPortBaseService {
 
   /**
    * 获取今日订单
-   * 查询当天的所有订单记录
+   * 查询今日的所有订单
    * @param options 查询选项，可选参数
-   * @returns 返回订单数组，包含每个订单的详细信息
-   * @throws 当API调用失败时抛出错误
+   * @returns 返回今日订单列表
    */
   async getTodayOrders(options?: GetTodayOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
@@ -84,13 +81,13 @@ export class LongPortOrderService extends LongPortBaseService {
     return orders.map(order => ({
       orderId: order.orderId,
       symbol: order.symbol,
-      orderType: order.orderType as OrderType,
-      side: order.side as OrderSide,
-      quantity: order.quantity,
+      orderType: order.orderType,
+      side: order.side,
+      quantity: order.quantity.toNumber(),
       price: order.price?.toNumber(),
       status: order.status as OrderStatus,
-      filledQuantity: order.filledQuantity,
-      filledPrice: order.filledPrice?.toNumber(),
+      filledQuantity: order.filledQuantity.toNumber(),
+      filledPrice: order.filledPrice.toNumber(),
       createdAt: order.createdAt.getTime(),
       updatedAt: order.updatedAt.getTime()
     }));
@@ -98,10 +95,9 @@ export class LongPortOrderService extends LongPortBaseService {
 
   /**
    * 获取历史订单
-   * 查询历史订单记录
-   * @param options 查询选项，包含股票代码、时间范围等
-   * @returns 返回订单数组，包含每个订单的详细信息
-   * @throws 当API调用失败时抛出错误
+   * 查询指定时间范围内的历史订单
+   * @param options 查询选项，包括股票代码、开始时间、结束时间等
+   * @returns 返回历史订单列表
    */
   async getHistoryOrders(options: GetHistoryOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
@@ -109,13 +105,13 @@ export class LongPortOrderService extends LongPortBaseService {
     return orders.map(order => ({
       orderId: order.orderId,
       symbol: order.symbol,
-      orderType: order.orderType as OrderType,
-      side: order.side as OrderSide,
-      quantity: order.quantity,
+      orderType: order.orderType,
+      side: order.side,
+      quantity: order.quantity.toNumber(),
       price: order.price?.toNumber(),
       status: order.status as OrderStatus,
-      filledQuantity: order.filledQuantity,
-      filledPrice: order.filledPrice?.toNumber(),
+      filledQuantity: order.filledQuantity.toNumber(),
+      filledPrice: order.filledPrice.toNumber(),
       createdAt: order.createdAt.getTime(),
       updatedAt: order.updatedAt.getTime()
     }));
