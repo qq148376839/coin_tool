@@ -62,9 +62,9 @@ export class LongPortOrderService extends LongPortBaseService {
   private async watchOrderStatus(orderId: string) {
     const tradeCtx = await this.initTradeContext();
     
-    tradeCtx.setOrderCallback((order) => {
-      if (order.orderId === orderId) {
-        this.orderCallbacks.forEach(callback => callback(order));
+    tradeCtx.setOnOrderChanged((err, event) => {
+      if (!err && event && event.orderId === orderId) {
+        this.orderCallbacks.forEach(callback => callback(event));
       }
     });
   }
@@ -126,5 +126,38 @@ export class LongPortOrderService extends LongPortBaseService {
   async cancelOrder(orderId: string): Promise<void> {
     const tradeCtx = await this.initTradeContext();
     await tradeCtx.cancelOrder(orderId);
+  }
+
+  async getOrders(): Promise<Order[]> {
+    const tradeCtx = await this.initTradeContext();
+    const orders = await tradeCtx.todayOrders();
+    return orders.map(order => ({
+      orderId: order.orderId,
+      status: order.status,
+      stockName: order.stockName,
+      quantity: order.quantity.toNumber(),
+      executedQuantity: order.executedQuantity.toNumber(),
+      price: order.price.toNumber(),
+      executedPrice: order.executedPrice.toNumber(),
+      submittedAt: order.submittedAt.getTime(),
+      updatedAt: order.updatedAt.getTime(),
+      side: order.side,
+      orderType: order.orderType,
+      timeInForce: order.timeInForce,
+      symbol: order.symbol,
+      lastDone: order.lastDone?.toNumber() || 0,
+      triggerPrice: order.triggerPrice?.toNumber() || 0,
+      msg: order.msg || '',
+      tag: order.tag || '',
+      expireDate: order.expireDate || '',
+      triggerAt: order.triggerAt || 0,
+      trailingAmount: order.trailingAmount?.toNumber() || 0,
+      trailingPercent: order.trailingPercent?.toNumber() || 0,
+      limitOffset: order.limitOffset?.toNumber() || 0,
+      triggerStatus: order.triggerStatus || '',
+      currency: order.currency || '',
+      outsideRth: order.outsideRth || '',
+      remark: order.remark || ''
+    }));
   }
 } 

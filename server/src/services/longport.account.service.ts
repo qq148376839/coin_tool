@@ -23,10 +23,19 @@ export class LongPortAccountService extends LongPortBaseService {
       currency: balance.currency,
       maxFinanceAmount: balance.maxFinanceAmount.toNumber(),
       remainingFinanceAmount: balance.remainingFinanceAmount.toNumber(),
-      marginRatio: balance.marginRatio.toNumber(),
-      maintenanceMarginRatio: balance.maintenanceMarginRatio.toNumber(),
-      initialMarginRatio: balance.initialMarginRatio.toNumber(),
-      toJSON: () => balance.toJSON()
+      riskLevel: balance.riskLevel,
+      marginCall: balance.marginCall.toNumber(),
+      cashInfos: balance.cashInfos.map(info => ({
+        withdrawCash: info.withdrawCash.toNumber(),
+        availableCash: info.availableCash.toNumber(),
+        frozenCash: info.frozenCash.toNumber(),
+        settlingCash: info.settlingCash.toNumber(),
+        currency: info.currency
+      })),
+      netAssets: balance.netAssets.toNumber(),
+      initMargin: balance.initMargin.toNumber(),
+      maintenanceMargin: balance.maintenanceMargin.toNumber(),
+      buyPower: balance.buyPower.toNumber()
     }));
   }
 

@@ -1,3 +1,5 @@
+import { Decimal } from 'decimal.js';
+
 // 账户相关类型
 export interface AccountBalance {
   totalCash: number;
@@ -6,22 +8,27 @@ export interface AccountBalance {
   currency: string;
   maxFinanceAmount: number;
   remainingFinanceAmount: number;
-  marginRatio: number;
-  maintenanceMarginRatio: number;
-  initialMarginRatio: number;
-  toJSON: () => any;
+  riskLevel: number;
+  marginCall: number;
+  cashInfos: CashInfo[];
+  netAssets: number;
+  initMargin: number;
+  maintenanceMargin: number;
+  buyPower: number;
 }
 
 export interface CashInfo {
+  withdrawCash: number;
   availableCash: number;
   frozenCash: number;
+  settlingCash: number;
   currency: string;
 }
 
 export interface MarginRatio {
-  initialMarginRatio: number;
-  maintenanceMarginRatio: number;
-  currency: string;
+  imFactor: number;
+  mmFactor: number;
+  fmFactor: number;
 }
 
 // 行情相关类型
@@ -64,16 +71,31 @@ export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
 
 export interface Order {
   orderId: string;
+  status: OrderStatus;
+  stockName: string;
+  quantity: number;
+  executedQuantity: number;
+  price: number;
+  executedPrice: number;
+  submittedAt: number;
+  side: OrderSide;
   symbol: string;
   orderType: OrderType;
-  side: OrderSide;
-  quantity: number;
-  price?: number;
-  status: OrderStatus;
-  filledQuantity: number;
-  filledPrice: number;
-  createdAt: number;
+  lastDone: number;
+  triggerPrice: number;
+  msg: string;
+  tag: string;
+  timeInForce: string;
+  expireDate: string;
   updatedAt: number;
+  triggerAt: number;
+  trailingAmount: number;
+  trailingPercent: number;
+  limitOffset: number;
+  triggerStatus: string;
+  currency: string;
+  outsideRth: string;
+  remark: string;
 }
 
 export interface SubmitOrderParams {
@@ -82,14 +104,12 @@ export interface SubmitOrderParams {
   side: OrderSide;
   quantity: number;
   price?: number;
-  submittedQuantity: number;
-  timeInForce: 'DAY' | 'GTC' | 'IOC' | 'FOK';
+  timeInForce: string;
 }
 
 export interface SubmitOrderResponse {
   orderId: string;
   status: OrderStatus;
-  message?: string;
 }
 
 export interface GetTodayOrdersOptions {
