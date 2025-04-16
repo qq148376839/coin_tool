@@ -42,14 +42,14 @@ export class LongPortOrderService extends LongPortBaseService {
       symbol: params.symbol,
       orderType: params.orderType,
       side: params.side,
-      quantity: params.quantity,
-      price: params.price,
-      timeInForce: params.timeInForce
+      submittedQuantity: new Decimal(params.quantity),
+      timeInForce: params.timeInForce,
+      submittedPrice: params.price ? new Decimal(params.price) : undefined
     });
 
     return {
       orderId: response.orderId,
-      status: response.status as OrderStatus
+      status: response.status
     };
   }
 
