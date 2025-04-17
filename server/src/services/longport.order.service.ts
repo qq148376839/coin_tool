@@ -127,20 +127,7 @@ export class LongPortOrderService extends LongPortBaseService {
    */
   async getHistoryOrders(options: GetHistoryOrdersOptions): Promise<Order[]> {
     const tradeCtx = await this.initTradeContext();
-    const orders = await tradeCtx.historyOrders(options);
-    return orders.map(order => ({
-      orderId: order.orderId,
-      symbol: order.symbol,
-      orderType: order.orderType,
-      side: order.side,
-      quantity: order.quantity.toNumber(),
-      price: order.price?.toNumber(),
-      status: order.status as OrderStatus,
-      executedQuantity: order.executedQuantity.toNumber(),
-      executedPrice: order.executedPrice.toNumber(),
-      submittedAt: order.submittedAt.getTime(),
-      updatedAt: order.updatedAt.getTime()
-    }));
+    return await tradeCtx.historyOrders(options);
   }
 
   /**

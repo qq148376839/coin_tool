@@ -7,6 +7,7 @@ import {
     Candlestick,
     SubscribeParams,
     SubType,
+
     Period
 } from '../types/longport.types';
 
@@ -35,14 +36,13 @@ export class LongPortQuoteController {
 
     @Get('candles')
     async getCandles(
-        @Query('symbol') symbol: string,
+        @Query('symbol') symbol: string[],
         @Query('period') period: string, // 接收字符串参数
-        @Query('count') count: number,
-        @Query('adjustType') adjustType?: number
+        @Query('count') count: number
     ): Promise<Candlestick[]> {
         // 添加转换逻辑
         const periodEnum = this.convertToPeriodEnum(period);
-        return await this.quoteService.getCandles(symbol, periodEnum, count, adjustType);
+        return await this.quoteService.getCandles(symbol, periodEnum, count);
     }
 
     private convertToPeriodEnum(periodStr: string): Period {
@@ -66,8 +66,12 @@ export class LongPortQuoteController {
     }
 
     @Post('subscribe')
-    async subscribe(@Body() params: SubscribeParams): Promise<void> {
-        return await this.quoteService.subscribe(params.symbols, params.subTypes, true);
+    async subscribe(@Body() params: { symbols: string[]; subTypes: SubType[]; isFirstPush?: boolean }): Promise<void> {
+        return await this.quoteService.subscribe(
+            params.symbols, 
+            params.subTypes, 
+            params.isFirstPush ?? true
+        );
     }
 
     @Delete('unsubscribe')

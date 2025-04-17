@@ -1,7 +1,6 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {Injectable, Logger, OnModuleInit} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {
-    QuoteContext,
     Config,
     SecurityQuote,
     OptionQuote,
@@ -10,8 +9,10 @@ import {
     TopicType,
     Period,
     PushQuote,
-    Subscription
+    Subscription,
+    SubType
 } from '../types/longport.types';
+import { QuoteContext } from 'longport';
 import {LongPortBaseService} from './longport.base.service';
 import {ApiError, ErrorCode, handleError, logError} from '../utils/error-handler';
 
@@ -21,7 +22,7 @@ import {ApiError, ErrorCode, handleError, logError} from '../utils/error-handler
  * 支持实时行情查询、K线数据获取、行情订阅等功能
  */
 @Injectable()
-export class LongPortQuoteService extends LongPortBaseService {
+export class LongPortQuoteService extends LongPortBaseService implements OnModuleInit {
     private readonly logger = new Logger(LongPortQuoteService.name);
     protected quoteContext: QuoteContext;
     private subscriptions: Map<string, Subscription> = new Map();
@@ -34,6 +35,9 @@ export class LongPortQuoteService extends LongPortBaseService {
      */
     constructor(private configService: ConfigService) {
         super();
+    }
+
+    async onModuleInit() {
         const appKey = this.configService.get<string>('LONGPORT_APP_KEY');
         const appSecret = this.configService.get<string>('LONGPORT_APP_SECRET');
         const accessToken = this.configService.get<string>('LONGPORT_ACCESS_TOKEN');
@@ -48,9 +52,7 @@ export class LongPortQuoteService extends LongPortBaseService {
             appSecret,
             accessToken,
         };
-        QuoteContext.new(config).then(ctx => {
-            this.quoteContext = ctx;
-        });
+        this.quoteContext = await QuoteContext.new(config);
     }
 
     /**
@@ -128,11 +130,12 @@ export class LongPortQuoteService extends LongPortBaseService {
      * 订阅指定股票的实时行情数据
      * @param symbols 股票代码列表
      * @param subTypes 订阅类型列表，支持行情、深度、经纪商、成交等类型
+     * @param isFirstPush 是否第一次推送
      * @throws 当API调用失败时抛出错误
      */
-    async subscribe(symbols: string[], subTypes: TopicType[]): Promise<void> {
+    async subscribe(symbols: string[], subTypes: SubType[], isFirstPush: boolean = true): Promise<void> {
         const quoteCtx = await this.initQuoteContext();
-        await quoteCtx.subscribe(symbols, subTypes);
+        await quoteCtx.subscribe(symbols, subTypes, isFirstPush);
     }
 
     /**
@@ -142,7 +145,7 @@ export class LongPortQuoteService extends LongPortBaseService {
      * @param subTypes 订阅类型列表
      * @throws 当API调用失败时抛出错误
      */
-    async unsubscribe(symbols: string[], subTypes: TopicType[]): Promise<void> {
+    async unsubscribe(symbols: string[], subTypes: SubType[]): Promise<void> {
         const quoteCtx = await this.initQuoteContext();
         await quoteCtx.unsubscribe(symbols, subTypes);
     }

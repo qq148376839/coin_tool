@@ -3,9 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { io as SocketIOClient, Socket } from 'socket.io-client';
-import { LongPortAccountService } from '../src/services/longport.account.service';
-import { LongPortOrderService } from '../src/services/longport.order.service';
-import { LongPortQuoteService } from '../src/services/longport.quote.service';
+
 
 describe('LongPort API (e2e)', () => {
   let app: INestApplication;
