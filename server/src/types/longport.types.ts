@@ -2,36 +2,60 @@ import { Decimal } from 'decimal.js';
 
 // 账户相关类型
 export interface AccountBalance {
-  totalCash: number;
-  availableCash: number;
-  frozenCash: number;
+  totalCash: Decimal;
+  availableCash: Decimal;
+  frozenCash: Decimal;
   currency: string;
-  maxFinanceAmount: number;
-  remainingFinanceAmount: number;
+  maxFinanceAmount: Decimal;
+  remainingFinanceAmount: Decimal;
   riskLevel: number;
-  marginCall: number;
+  marginCall: Decimal;
   cashInfos: CashInfo[];
-  netAssets: number;
-  initMargin: number;
-  maintenanceMargin: number;
-  buyPower: number;
+  netAssets: Decimal;
+  initMargin: Decimal;
+  maintenanceMargin: Decimal;
+  buyPower: Decimal;
 }
 
 export interface CashInfo {
-  withdrawCash: number;
-  availableCash: number;
-  frozenCash: number;
-  settlingCash: number;
+  withdrawCash: Decimal;
+  availableCash: Decimal;
+  frozenCash: Decimal;
+  settlingCash: Decimal;
   currency: string;
 }
 
 export interface MarginRatio {
-  imFactor: number;
-  mmFactor: number;
-  fmFactor: number;
+  imFactor: Decimal;
+  mmFactor: Decimal;
+  fmFactor: Decimal;
 }
 
 // 行情相关类型
+export enum TradeStatus {
+  NORMAL = 'Normal',
+  HALTED = 'Halted',
+  DELISTED = 'Delisted',
+  FUSE = 'Fuse',
+  PREPARE_LIST = 'PrepareList',
+  CODE_MOVED = 'CodeMoved',
+  TO_BE_OPENED = 'ToBeOpened',
+  SPLIT_STOCK_HALTS = 'SplitStockHalts',
+  EXPIRED = 'Expired',
+  WARRANT_PREPARE_LIST = 'WarrantPrepareList',
+  SUSPEND = 'Suspend'
+}
+
+export interface PrePostQuote {
+  lastDone: Decimal;
+  timestamp: Date;
+  volume: number;
+  turnover: Decimal;
+  high: Decimal;
+  low: Decimal;
+  prevClose: Decimal;
+}
+
 export interface SecurityQuote {
   symbol: string;
   lastDone: Decimal;
@@ -43,30 +67,54 @@ export interface SecurityQuote {
   volume: number;
   turnover: Decimal;
   tradeStatus: TradeStatus;
-  preMarketQuote: PrePostQuote;
-  postMarketQuote: PrePostQuote;
-  overnightQuote: PrePostQuote;
+  preMarketQuote?: {
+    lastDone: Decimal;
+    timestamp: Date;
+    volume: number;
+    turnover: Decimal;
+    high: Decimal;
+    low: Decimal;
+    prevClose: Decimal;
+  };
+  postMarketQuote?: {
+    lastDone: Decimal;
+    timestamp: Date;
+    volume: number;
+    turnover: Decimal;
+    high: Decimal;
+    low: Decimal;
+    prevClose: Decimal;
+  };
+  overnightQuote?: {
+    lastDone: Decimal;
+    timestamp: Date;
+    volume: number;
+    turnover: Decimal;
+    high: Decimal;
+    low: Decimal;
+    prevClose: Decimal;
+  };
 }
 
 export interface OptionQuote extends SecurityQuote {
-  strikePrice: number;
+  strikePrice: Decimal;
   expirationDate: string;
   optionType: string;
 }
 
 export interface WarrantQuote extends SecurityQuote {
-  strikePrice: number;
+  strikePrice: Decimal;
   expirationDate: string;
 }
 
 export interface Candlestick {
-  timestamp: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  turnover: number;
+  timestamp: Date;
+  open: Decimal;
+  high: Decimal;
+  low: Decimal;
+  close: Decimal;
+  volume: Decimal;
+  turnover: Decimal;
 }
 
 // 订单相关类型
@@ -74,37 +122,41 @@ export type OrderType = 'LIMIT' | 'MARKET';
 export type OrderSide = 'BUY' | 'SELL';
 export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
 export enum TimeInForceType {
-  DAY = "Day",
-  GTC = "GoodTilCanceled",
-  GTD = "GoodTilDate"
+  Unknown = 'Unknown',
+  Day = 'Day',
+  GoodTilCanceled = 'GoodTilCanceled',
+  GoodTilDate = 'GoodTilDate'
 }
+export type OrderTag = 'NORMAL' | 'LONG_TERM' | 'SHORT_SELL';
+export type TriggerStatus = 'NORMAL' | 'TRIGGERED' | 'CANCELLED';
+export type OutsideRTH = 'NORMAL' | 'ONLY_RTH' | 'ONLY_NRTH';
 
 export interface Order {
   orderId: string;
   status: OrderStatus;
   stockName: string;
-  quantity: number;
-  executedQuantity: number;
-  price: number;
-  executedPrice: number;
-  submittedAt: number;
+  quantity: Decimal;
+  executedQuantity: Decimal;
+  price: Decimal;
+  executedPrice: Decimal;
+  submittedAt: Date;
   side: OrderSide;
   symbol: string;
   orderType: OrderType;
-  lastDone: number;
-  triggerPrice: number;
+  lastDone: Decimal;
+  triggerPrice: Decimal;
   msg: string;
-  tag: string;
+  tag: OrderTag;
   timeInForce: TimeInForceType;
-  expireDate: string;
-  updatedAt: number;
-  triggerAt: number;
-  trailingAmount: number;
-  trailingPercent: number;
-  limitOffset: number;
-  triggerStatus: string;
+  expireDate: NaiveDate;
+  updatedAt: Date;
+  triggerAt: Date;
+  trailingAmount: Decimal;
+  trailingPercent: Decimal;
+  limitOffset: Decimal;
+  triggerStatus: TriggerStatus;
   currency: string;
-  outsideRth: string;
+  outsideRth: OutsideRTH;
   remark: string;
 }
 
@@ -112,8 +164,8 @@ export interface SubmitOrderParams {
   symbol: string;
   orderType: OrderType;
   side: OrderSide;
-  quantity: number;
-  price?: number;
+  quantity: Decimal;
+  price?: Decimal;
   timeInForce: TimeInForceType;
 }
 
@@ -135,33 +187,33 @@ export interface GetHistoryOrdersOptions {
 
 // 订阅相关类型
 export enum SubType {
-  QUOTE = "Quote",
-  DEPTH = "Depth",
-  BROKER = "Broker",
-  TRADE = "Trade"
+  QUOTE = 'Quote',
+  DEPTH = 'Depth',
+  BROKER = 'Broker',
+  TRADE = 'Trade'
 }
 
 export enum Period {
-  MIN_1 = "Min_1",
-  MIN_5 = "Min_5",
-  MIN_15 = "Min_15",
-  MIN_30 = "Min_30",
-  MIN_60 = "Min_60",
-  DAY = "Day",
-  WEEK = "Week",
-  MONTH = "Month",
-  YEAR = "Year"
+  MIN_1 = 'Min_1',
+  MIN_5 = 'Min_5',
+  MIN_15 = 'Min_15',
+  MIN_30 = 'Min_30',
+  MIN_60 = 'Min_60',
+  DAY = 'Day',
+  WEEK = 'Week',
+  MONTH = 'Month',
+  YEAR = 'Year'
 }
 
 export interface PushQuote {
   symbol: string;
-  lastDone: number;
-  openPrice: number;
-  highPrice: number;
-  lowPrice: number;
+  lastDone: Decimal;
+  open: Decimal;
+  high: Decimal;
+  low: Decimal;
   volume: number;
-  turnover: number;
-  timestamp: number;
+  turnover: Decimal;
+  timestamp: Date;
 }
 
 export interface Subscription {
@@ -179,4 +231,10 @@ export interface ApiError {
 export interface SubscribeParams {
   symbols: string[];
   subTypes: SubType[];
+}
+
+export interface NaiveDate {
+  year: number;
+  month: number;
+  day: number;
 } 

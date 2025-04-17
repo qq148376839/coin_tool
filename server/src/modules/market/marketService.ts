@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LongPortQuoteService } from '../../services/longport.quote.service';
-import { Period } from 'longport';
-import { KlineDto, PriceDto } from '../../dto/market.dtc';
+import { Period } from '../../types/longport.types';
+import { KlineDto, PriceDto } from '../../dto/market.dto';
 import { INTERVAL, INTERVAL_TIME, TREND_PARAMS } from '../../enums/market';
 import {
   KlineChangeType,
@@ -14,14 +14,14 @@ export class MarketService {
   constructor(private readonly quoteService: LongPortQuoteService) {}
 
   private readonly periodMap: Record<string, Period> = {
-    '1m': Period.MIN_1,
-    '5m': Period.MIN_5,
-    '15m': Period.MIN_15,
-    '30m': Period.MIN_30,
-    '60m': Period.MIN_60,
-    '1d': Period.DAY,
-    '1w': Period.WEEK,
-    '1M': Period.MONTH
+    '1m': Period.MIN_1,    // 'Min_1'
+    '5m': Period.MIN_5,    // 'Min_5'
+    '15m': Period.MIN_15,  // 'Min_15'
+    '30m': Period.MIN_30,  // 'Min_30'
+    '60m': Period.MIN_60,  // 'Min_60'
+    '1d': Period.DAY,      // 'Day'
+    '1w': Period.WEEK,     // 'Week'
+    '1M': Period.MONTH     // 'Month'
   };
 
   getPeriod(interval: string): Period {
@@ -34,7 +34,7 @@ export class MarketService {
       const quote = await this.quoteService.getQuote([symbol]);
       return {
         symbol: quote[0].symbol,
-        price: Number(quote[0].lastDone),
+        price: quote[0].lastDone.toNumber(),  // 使用 toNumber() 方法
         updateTime: new Date().toISOString()
       };
     } catch (error) {

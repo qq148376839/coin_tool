@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { LongPortQuoteService } from '../services/longport.quote.service';
 import { LongPortOrderService } from '../services/longport.order.service';
-import { SubType } from 'longport';
+import { SubType } from '../types/longport.types';
 
 @WebSocketGateway({
   cors: {
@@ -42,7 +42,7 @@ export class LongPortGateway implements OnGatewayConnection, OnGatewayDisconnect
     console.log(`Client disconnected: ${client.id}`);
     const symbols = this.subscriptions.get(client.id);
     if (symbols) {
-      this.quoteService.unsubscribe(Array.from(symbols), ['QUOTE']);
+      this.quoteService.unsubscribe(Array.from(symbols), [SubType.QUOTE]);
       this.subscriptions.delete(client.id);
     }
     this.orderSubscriptions.delete(client.id);
