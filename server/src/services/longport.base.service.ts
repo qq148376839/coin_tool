@@ -1,4 +1,4 @@
-import { TradeContext, QuoteContext } from 'longport';
+import { TradeContext, QuoteContext } from '../types/longport.types';
 import { Injectable } from '@nestjs/common';
 import config from '../config/common';
 
