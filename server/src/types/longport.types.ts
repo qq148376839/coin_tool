@@ -195,6 +195,13 @@ export enum TopicType {
   Candlestick = 'Candlestick'
 }
 
+export enum SubType {
+  Quote = 0,
+  Depth = 1,
+  Brokers = 2,
+  Trade = 3
+}
+
 export type Private = TopicType.Private;
 
 export enum Period {

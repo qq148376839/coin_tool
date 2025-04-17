@@ -64,9 +64,9 @@ export class LongPortOrderService extends LongPortBaseService {
     
     // 使用轮询方式检查订单状态
     const checkOrderStatus = async () => {
-      const orders = await tradeCtx.todayOrders({ orderId });
-      if (orders && orders.length > 0) {
-        const order = orders[0];
+      const orders = await tradeCtx.todayOrders();
+      const order = orders.find(o => o.orderId === orderId);
+      if (order) {
         this.orderCallbacks.forEach(callback => callback(order));
       }
     };
@@ -91,16 +91,31 @@ export class LongPortOrderService extends LongPortBaseService {
     const orders = await tradeCtx.todayOrders(options);
     return orders.map(order => ({
       orderId: order.orderId,
-      symbol: order.symbol,
-      orderType: order.orderType,
+      status: order.status,
+      stockName: order.stockName,
+      quantity: order.quantity,
+      executedQuantity: order.executedQuantity,
+      price: order.price,
+      executedPrice: order.executedPrice,
+      submittedAt: order.submittedAt,
+      updatedAt: order.updatedAt,
       side: order.side,
-      quantity: order.quantity.toNumber(),
-      price: order.price?.toNumber(),
-      status: order.status as OrderStatus,
-      executedQuantity: order.executedQuantity.toNumber(),
-      executedPrice: order.executedPrice.toNumber(),
-      submittedAt: order.submittedAt.getTime(),
-      updatedAt: order.updatedAt.getTime()
+      orderType: order.orderType,
+      timeInForce: order.timeInForce,
+      symbol: order.symbol,
+      lastDone: order.lastDone,
+      triggerPrice: order.triggerPrice,
+      msg: order.msg,
+      tag: order.tag,
+      expireDate: order.expireDate,
+      triggerAt: order.triggerAt,
+      trailingAmount: order.trailingAmount,
+      trailingPercent: order.trailingPercent,
+      limitOffset: order.limitOffset,
+      triggerStatus: order.triggerStatus,
+      currency: order.currency,
+      outsideRth: order.outsideRth,
+      remark: order.remark
     }));
   }
 

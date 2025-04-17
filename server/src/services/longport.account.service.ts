@@ -17,25 +17,25 @@ export class LongPortAccountService extends LongPortBaseService {
     const tradeCtx = await this.initTradeContext();
     const balances = await tradeCtx.accountBalance();
     return balances.map(balance => ({
-      totalCash: balance.totalCash.toNumber(),
-      availableCash: balance.availableCash.toNumber(),
-      frozenCash: balance.frozenCash.toNumber(),
+      totalCash: balance.totalCash,
+      availableCash: balance.availableCash,
+      frozenCash: balance.frozenCash,
       currency: balance.currency,
-      maxFinanceAmount: balance.maxFinanceAmount.toNumber(),
-      remainingFinanceAmount: balance.remainingFinanceAmount.toNumber(),
+      maxFinanceAmount: balance.maxFinanceAmount,
+      remainingFinanceAmount: balance.remainingFinanceAmount,
       riskLevel: balance.riskLevel,
-      marginCall: balance.marginCall.toNumber(),
+      marginCall: balance.marginCall,
       cashInfos: balance.cashInfos.map(info => ({
-        withdrawCash: info.withdrawCash.toNumber(),
-        availableCash: info.availableCash.toNumber(),
-        frozenCash: info.frozenCash.toNumber(),
-        settlingCash: info.settlingCash.toNumber(),
+        withdrawCash: info.withdrawCash,
+        availableCash: info.availableCash,
+        frozenCash: info.frozenCash,
+        settlingCash: info.settlingCash,
         currency: info.currency
       })),
-      netAssets: balance.netAssets.toNumber(),
-      initMargin: balance.initMargin.toNumber(),
-      maintenanceMargin: balance.maintenanceMargin.toNumber(),
-      buyPower: balance.buyPower.toNumber()
+      netAssets: balance.netAssets,
+      initMargin: balance.initMargin,
+      maintenanceMargin: balance.maintenanceMargin,
+      buyPower: balance.buyPower
     }));
   }
 

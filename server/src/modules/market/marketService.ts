@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LongPortQuoteService } from '../../services/longport.quote.service';
 import { Period } from '../../types/longport.types';
-import { KlineDto, PriceDto } from '../../dto/market.dto';
+import { KlineDto, PriceDto } from '../../dto/market.dtc';
 import { INTERVAL, INTERVAL_TIME, TREND_PARAMS } from '../../enums/market';
 import {
   KlineChangeType,
