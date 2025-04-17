@@ -34,13 +34,18 @@ export interface MarginRatio {
 // 行情相关类型
 export interface SecurityQuote {
   symbol: string;
-  lastDone: number;
-  openPrice: number;
-  highPrice: number;
-  lowPrice: number;
+  lastDone: Decimal;
+  prevClose: Decimal;
+  open: Decimal;
+  high: Decimal;
+  low: Decimal;
+  timestamp: Date;
   volume: number;
-  turnover: number;
-  timestamp: number;
+  turnover: Decimal;
+  tradeStatus: TradeStatus;
+  preMarketQuote: PrePostQuote;
+  postMarketQuote: PrePostQuote;
+  overnightQuote: PrePostQuote;
 }
 
 export interface OptionQuote extends SecurityQuote {
@@ -68,7 +73,11 @@ export interface Candlestick {
 export type OrderType = 'LIMIT' | 'MARKET';
 export type OrderSide = 'BUY' | 'SELL';
 export type OrderStatus = 'PENDING' | 'FILLED' | 'CANCELLED' | 'REJECTED';
-export type TimeInForceType = 'Day' | 'GoodTilCanceled' | 'GoodTilDate';
+export enum TimeInForceType {
+  DAY = "Day",
+  GTC = "GoodTilCanceled",
+  GTD = "GoodTilDate"
+}
 
 export interface Order {
   orderId: string;
@@ -126,22 +135,22 @@ export interface GetHistoryOrdersOptions {
 
 // 订阅相关类型
 export enum SubType {
-  QUOTE = 'Quote',
-  DEPTH = 'Depth',
-  BROKER = 'Brokers',
-  TRADE = 'Trade'
+  QUOTE = "Quote",
+  DEPTH = "Depth",
+  BROKER = "Broker",
+  TRADE = "Trade"
 }
 
 export enum Period {
-  MIN_1 = 'Min_1',
-  MIN_5 = 'Min_5',
-  MIN_15 = 'Min_15',
-  MIN_30 = 'Min_30',
-  MIN_60 = 'Min_60',
-  DAY = 'Day',
-  WEEK = 'Week',
-  MONTH = 'Month',
-  YEAR = 'Year'
+  MIN_1 = "Min_1",
+  MIN_5 = "Min_5",
+  MIN_15 = "Min_15",
+  MIN_30 = "Min_30",
+  MIN_60 = "Min_60",
+  DAY = "Day",
+  WEEK = "Week",
+  MONTH = "Month",
+  YEAR = "Year"
 }
 
 export interface PushQuote {
