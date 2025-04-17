@@ -2,21 +2,16 @@ import {Injectable, Logger} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {
     QuoteContext,
-    SecurityQuote as LongPortQuote,
-    OptionQuote as LongPortOptionQuote,
-    WarrantQuote as LongPortWarrantQuote,
-    Candlestick as LongPortCandlestick
-} from '../types/longport.types';
-import {
+    Config,
     SecurityQuote,
     OptionQuote,
     WarrantQuote,
     Candlestick,
-    SubType,
+    TopicType,
     Period,
     PushQuote,
     Subscription
-} from '@/types/longport.types';
+} from '../types/longport.types';
 import {LongPortBaseService} from './longport.base.service';
 import {ApiError, ErrorCode, handleError, logError} from '../utils/error-handler';
 
@@ -48,11 +43,13 @@ export class LongPortQuoteService extends LongPortBaseService {
         }
 
         // 初始化行情上下文
-        this.quoteContext = new QuoteContext();
-        this.quoteContext.setConfig({
+        const config: Config = {
             appKey,
             appSecret,
             accessToken,
+        };
+        QuoteContext.new(config).then(ctx => {
+            this.quoteContext = ctx;
         });
     }
 
@@ -66,17 +63,7 @@ export class LongPortQuoteService extends LongPortBaseService {
     async getQuote(symbols: string[]): Promise<SecurityQuote[]> {
         try {
             const quoteCtx = await this.initQuoteContext();
-            const quotes = await quoteCtx.quote(symbols);
-            return quotes.map(quote => ({
-                symbol: quote.symbol,
-                lastPrice: Number(quote.lastPrice),
-                openPrice: Number(quote.openPrice),
-                highPrice: Number(quote.highPrice),
-                lowPrice: Number(quote.lowPrice),
-                volume: Number(quote.volume),
-                turnover: Number(quote.turnover),
-                timestamp: quote.timestamp.getTime()
-            }));
+            return await quoteCtx.quote(symbols);
         } catch (error) {
             logError(error, 'LongPortQuoteService.getQuote');
             throw handleError(error);
@@ -93,20 +80,7 @@ export class LongPortQuoteService extends LongPortBaseService {
     async getOptionQuote(symbols: string[]): Promise<OptionQuote[]> {
         try {
             const quoteCtx = await this.initQuoteContext();
-            const quotes = await quoteCtx.optionQuote(symbols);
-            return quotes.map(quote => ({
-                symbol: quote.symbol,
-                lastPrice: Number(quote.lastPrice),
-                openPrice: Number(quote.openPrice),
-                highPrice: Number(quote.highPrice),
-                lowPrice: Number(quote.lowPrice),
-                volume: Number(quote.volume),
-                turnover: Number(quote.turnover),
-                timestamp: quote.timestamp.getTime(),
-                strikePrice: Number(quote.strikePrice),
-                expirationDate: quote.expirationDate,
-                optionType: quote.optionType
-            }));
+            return await quoteCtx.optionQuote(symbols);
         } catch (error) {
             logError(error, 'LongPortQuoteService.getOptionQuote');
             throw handleError(error);
@@ -123,19 +97,7 @@ export class LongPortQuoteService extends LongPortBaseService {
     async getWarrantQuote(symbols: string[]): Promise<WarrantQuote[]> {
         try {
             const quoteCtx = await this.initQuoteContext();
-            const quotes = await quoteCtx.warrantQuote(symbols);
-            return quotes.map(quote => ({
-                symbol: quote.symbol,
-                lastPrice: Number(quote.lastPrice),
-                openPrice: Number(quote.openPrice),
-                highPrice: Number(quote.highPrice),
-                lowPrice: Number(quote.lowPrice),
-                volume: Number(quote.volume),
-                turnover: Number(quote.turnover),
-                timestamp: quote.timestamp.getTime(),
-                strikePrice: Number(quote.strikePrice),
-                expirationDate: quote.expirationDate
-            }));
+            return await quoteCtx.warrantQuote(symbols);
         } catch (error) {
             logError(error, 'LongPortQuoteService.getWarrantQuote');
             throw handleError(error);
@@ -145,26 +107,16 @@ export class LongPortQuoteService extends LongPortBaseService {
     /**
      * 获取K线数据
      * 通过长桥API获取指定股票的K线数据
-     * @param symbol 股票代码
+     * @param symbols 股票代码列表
      * @param period K线周期，支持1分钟、5分钟、15分钟、30分钟、60分钟、日线、周线、月线、年线
      * @param count 获取的K线数量
-     * @param adjustType 复权类型，可选参数
      * @returns 返回K线数据数组，包含每个时间点的开盘价、最高价、最低价、收盘价等信息
      * @throws 当API调用失败时抛出错误
      */
-    async getCandles(symbol: string, period: Period, count: number, adjustType?: number): Promise<Candlestick[]> {
+    async getCandles(symbols: string[], period: Period, count: number): Promise<Candlestick[]> {
         try {
             const quoteCtx = await this.initQuoteContext();
-            const candles = await quoteCtx.candlestick(symbol, period, count, adjustType);
-            return candles.map(candle => ({
-                timestamp: candle.timestamp.getTime(),
-                open: Number(candle.open),
-                high: Number(candle.high),
-                low: Number(candle.low),
-                close: Number(candle.close),
-                volume: Number(candle.volume),
-                turnover: Number(candle.turnover)
-            }));
+            return await quoteCtx.candlesticks(symbols, period, count);
         } catch (error) {
             logError(error, 'LongPortQuoteService.getCandles');
             throw handleError(error);
@@ -178,37 +130,9 @@ export class LongPortQuoteService extends LongPortBaseService {
      * @param subTypes 订阅类型列表，支持行情、深度、经纪商、成交等类型
      * @throws 当API调用失败时抛出错误
      */
-    async subscribe(symbols: string[], subTypes: SubType[]): Promise<void> {
-        try {
-            const quoteCtx = await this.initQuoteContext();
-            await quoteCtx.subscribe(symbols, subTypes, true);
-
-            // 使用轮询方式获取最新行情
-            const checkQuotes = async () => {
-                const quotes = await this.getQuote(symbols);
-                quotes.forEach(quote => {
-                    this.pushCallbacks.forEach(callback => callback(quote));
-                });
-            };
-
-            // 每1秒获取一次最新行情
-            const interval = setInterval(checkQuotes, 1000);
-
-            symbols.forEach(symbol => {
-                this.subscriptions.set(symbol, {
-                    onQuote: (callback) => {
-                        this.pushCallbacks.push(callback);
-                    },
-                    unsubscribe: () => {
-                        this.unsubscribe([symbol], subTypes);
-                        clearInterval(interval);
-                    }
-                });
-            });
-        } catch (error) {
-            logError(error, 'LongPortQuoteService.subscribe');
-            throw handleError(error);
-        }
+    async subscribe(symbols: string[], subTypes: TopicType[]): Promise<void> {
+        const quoteCtx = await this.initQuoteContext();
+        await quoteCtx.subscribe(symbols, subTypes);
     }
 
     /**
@@ -218,18 +142,9 @@ export class LongPortQuoteService extends LongPortBaseService {
      * @param subTypes 订阅类型列表
      * @throws 当API调用失败时抛出错误
      */
-    async unsubscribe(symbols: string[], subTypes: SubType[]): Promise<void> {
-        try {
-            const quoteCtx = await this.initQuoteContext();
-            await quoteCtx.unsubscribe(symbols, subTypes);
-
-            symbols.forEach(symbol => {
-                this.subscriptions.delete(symbol);
-            });
-        } catch (error) {
-            logError(error, 'LongPortQuoteService.unsubscribe');
-            throw handleError(error);
-        }
+    async unsubscribe(symbols: string[], subTypes: TopicType[]): Promise<void> {
+        const quoteCtx = await this.initQuoteContext();
+        await quoteCtx.unsubscribe(symbols, subTypes);
     }
 
     /**

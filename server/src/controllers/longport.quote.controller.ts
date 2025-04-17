@@ -67,7 +67,7 @@ export class LongPortQuoteController {
 
     @Post('subscribe')
     async subscribe(@Body() params: SubscribeParams): Promise<void> {
-        return await this.quoteService.subscribe(params.symbols, params.subTypes);
+        return await this.quoteService.subscribe(params.symbols, params.subTypes, true);
     }
 
     @Delete('unsubscribe')

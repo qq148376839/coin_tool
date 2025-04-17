@@ -1,4 +1,5 @@
 import { Decimal } from 'decimal.js';
+import { QuoteContext as LongPortQuoteContext } from 'longport';
 
 // 账户相关类型
 export interface AccountBalance {
@@ -273,53 +274,7 @@ export interface TradeContext {
 }
 
 // 行情上下文类型
-export interface QuoteContext {
-  new(config: Config): Promise<QuoteContext>;
-  memberId(): number;
-  quoteLevel(): string;
-  quotePackageDetails(): QuotePackageDetail[];
-  setOnQuote(callback: (err: Error, event: PushQuoteEvent) => void): void;
-  setOnDepth(callback: (err: Error, event: PushDepthEvent) => void): void;
-  setOnBrokers(callback: (err: Error, event: PushBrokersEvent) => void): void;
-  setOnTrades(callback: (err: Error, event: PushTradesEvent) => void): void;
-  setOnCandlestick(callback: (err: Error, event: PushCandlestickEvent) => void): void;
-  subscribe(symbols: string[], subTypes: TopicType[]): Promise<void>;
-  unsubscribe(symbols: string[], subTypes: TopicType[]): Promise<void>;
-  subscribeCandlesticks(symbols: string[], period: Period): Promise<void>;
-  unsubscribeCandlesticks(symbols: string[], period: Period): Promise<void>;
-  subscriptions(): Promise<Subscription[]>;
-  staticInfo(symbols: string[]): Promise<StaticInfo[]>;
-  quote(symbols: string[]): Promise<SecurityQuote[]>;
-  optionQuote(symbols: string[]): Promise<OptionQuote[]>;
-  warrantQuote(symbols: string[]): Promise<WarrantQuote[]>;
-  depth(symbols: string[]): Promise<Depth[]>;
-  brokers(symbols: string[]): Promise<Brokers[]>;
-  participants(symbols: string[]): Promise<Participants[]>;
-  trades(symbols: string[]): Promise<Trade[]>;
-  intraday(symbols: string[]): Promise<Intraday[]>;
-  candlesticks(symbols: string[], period: Period, count: number): Promise<Candlestick[]>;
-  historyCandlesticksByOffset(symbol: string, period: Period, count: number, offset?: number): Promise<Candlestick[]>;
-  historyCandlesticksByDate(symbol: string, period: Period, start: Date, end: Date): Promise<Candlestick[]>;
-  optionChainExpiryDateList(symbol: string): Promise<Date[]>;
-  optionChainInfoByDate(symbol: string, expiryDate: Date): Promise<OptionChainInfo[]>;
-  warrantIssuers(): Promise<WarrantIssuer[]>;
-  warrantList(symbol: string): Promise<WarrantInfo[]>;
-  tradingSession(): Promise<TradingSession[]>;
-  tradingDays(market: Market, begin: Date, end: Date): Promise<Date[]>;
-  capitalFlow(symbols: string[]): Promise<CapitalFlow[]>;
-  capitalDistribution(symbols: string[]): Promise<CapitalDistribution[]>;
-  calcIndexes(symbols: string[], indexes: string[]): Promise<CalcIndex[]>;
-  watchlist(): Promise<WatchlistGroup[]>;
-  createWatchlistGroup(name: string, securities: string[]): Promise<void>;
-  deleteWatchlistGroup(id: number): Promise<void>;
-  updateWatchlistGroup(id: number, name?: string, securities?: string[]): Promise<void>;
-  securityList(market: Market, language: Language): Promise<SecurityInfo[]>;
-  realtimeQuote(symbols: string[]): Promise<SecurityQuote[]>;
-  realtimeDepth(symbols: string[]): Promise<Depth[]>;
-  realtimeBrokers(symbols: string[]): Promise<Brokers[]>;
-  realtimeTrades(symbols: string[]): Promise<Trade[]>;
-  realtimeCandlesticks(symbol: string, period: Period, count: number): Promise<Candlestick[]>;
-}
+export type QuoteContext = LongPortQuoteContext;
 
 // 配置类型
 export interface Config {

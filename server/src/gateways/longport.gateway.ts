@@ -42,7 +42,7 @@ export class LongPortGateway implements OnGatewayConnection, OnGatewayDisconnect
     console.log(`Client disconnected: ${client.id}`);
     const symbols = this.subscriptions.get(client.id);
     if (symbols) {
-      this.quoteService.unsubscribe(Array.from(symbols), [SubType.QUOTE]);
+      this.quoteService.unsubscribe(Array.from(symbols), [SubType.Quote]);
       this.subscriptions.delete(client.id);
     }
     this.orderSubscriptions.delete(client.id);
