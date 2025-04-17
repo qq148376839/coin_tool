@@ -6,7 +6,8 @@ import {
   WarrantQuote, 
   Candlestick,
   SubscribeParams,
-  SubType
+  SubType,
+  Period
 } from '../types/longport.types';
 
 @Controller('longport/quote')
@@ -34,11 +35,33 @@ export class LongPortQuoteController {
   @Get('candles')
   async getCandles(
     @Query('symbol') symbol: string,
-    @Query('period') period: string,
+    @Query('period') period: string, // 接收字符串参数
     @Query('count') count: number,
     @Query('adjustType') adjustType?: number
   ): Promise<Candlestick[]> {
-    return await this.quoteService.getCandles(symbol, period, count, adjustType);
+    // 添加转换逻辑
+    const periodEnum = this.convertToPeriodEnum(period);
+    return await this.quoteService.getCandles(symbol, periodEnum, count, adjustType);
+  }
+
+  private convertToPeriodEnum(periodStr: string): Period {
+    const mapping: Record<string, Period> = {
+      '1m': Period.MIN_1,
+      '5m': Period.MIN_5,
+      '15m': Period.MIN_15,
+      '30m': Period.MIN_30,
+      '60m': Period.MIN_60,
+      '1d': Period.DAY,
+      '1w': Period.WEEK,
+      '1M': Period.MONTH,
+      '1y': Period.YEAR
+    };
+
+    const period = mapping[periodStr];
+    if (!period) {
+      throw new BadRequestException(`Invalid period value. Valid values are: ${Object.keys(mapping).join(', ')}`);
+    }
+    return period;
   }
 
   @Post('subscribe')
